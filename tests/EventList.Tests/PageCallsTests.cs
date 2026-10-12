@@ -29,14 +29,14 @@ public class PageCallsTests
     {
         const string script = "(function(){window.__sleventlist={apply:function(){return \"ok\";}};})();\n// last line";
 
-        Assert.Contains(PageCalls.Quote(script), PageCalls.Install(script, ListSettings.From(0, true, true)));
+        Assert.Contains(PageCalls.Quote(script), PageCalls.Install(script, ListSettings.From(0, true, true, true)));
     }
 
     [Fact]
     public void Every_call_hands_the_page_the_configured_height_and_order()
     {
-        var settings = ListSettings.From(150, true, false);
-        var expected = "{maxHeight:150,importantOnTop:true,countdownOnTop:false}";
+        var settings = ListSettings.From(150, true, false, false);
+        var expected = "{maxHeight:150,importantOnTop:true,countdownOnTop:false,soonestFirst:false}";
 
         Assert.Equal(expected, PageCalls.Settings(settings));
         Assert.Contains(expected, PageCalls.Check(settings));

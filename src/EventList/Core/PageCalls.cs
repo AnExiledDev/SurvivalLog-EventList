@@ -28,7 +28,7 @@ public static class PageCalls
         Wrap($"w.eval({Quote(script)});if(!{Api})return '{PageAnswer.InstallLeftNothing}';return String({Api}.apply({Settings(settings)}));");
 
     public static string Settings(ListSettings settings) =>
-        $"{{maxHeight:{Number(settings.MaxHeight)},importantOnTop:{Bool(settings.IsImportantOnTop)},countdownOnTop:{Bool(settings.IsCountdownOnTop)}}}";
+        $"{{maxHeight:{Number(settings.MaxHeight)},importantOnTop:{Bool(settings.IsImportantOnTop)},countdownOnTop:{Bool(settings.IsCountdownOnTop)},soonestFirst:{Bool(settings.IsCountdownSoonestFirst)}}}";
 
     /// <summary>A JavaScript string literal that no quote, backslash or line break in the text can end early.</summary>
     public static string Quote(string text)

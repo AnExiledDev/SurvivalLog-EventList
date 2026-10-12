@@ -18,11 +18,12 @@ public sealed record ListSettings
     /// <summary>Past this a fixed height stops meaning anything; the game's own scroll box stops at 220.</summary>
     public const int HighestMaxHeight = 600;
 
-    private ListSettings(int maxHeight, bool isImportantOnTop, bool isCountdownOnTop)
+    private ListSettings(int maxHeight, bool isImportantOnTop, bool isCountdownOnTop, bool isCountdownSoonestFirst)
     {
         MaxHeight = maxHeight;
         IsImportantOnTop = isImportantOnTop;
         IsCountdownOnTop = isCountdownOnTop;
+        IsCountdownSoonestFirst = isCountdownSoonestFirst;
     }
 
     /// <summary>In the page's own CSS pixels, the unit the game's list is laid out in.</summary>
@@ -33,8 +34,11 @@ public sealed record ListSettings
     /// <summary>Whether an event with a running countdown counts as important. Means nothing while <see cref="IsImportantOnTop"/> is off.</summary>
     public bool IsCountdownOnTop { get; }
 
-    public static ListSettings From(int requestedMaxHeight, bool isImportantOnTop, bool isCountdownOnTop) =>
-        new(ClampMaxHeight(requestedMaxHeight), isImportantOnTop, isCountdownOnTop);
+    /// <summary>Whether the countdowns on top are ordered by time left, soonest first. Means nothing while <see cref="IsCountdownOnTop"/> is off.</summary>
+    public bool IsCountdownSoonestFirst { get; }
+
+    public static ListSettings From(int requestedMaxHeight, bool isImportantOnTop, bool isCountdownOnTop, bool isCountdownSoonestFirst) =>
+        new(ClampMaxHeight(requestedMaxHeight), isImportantOnTop, isCountdownOnTop, isCountdownSoonestFirst);
 
     /// <summary>0 or less asks for the default; anything else is held inside the range the page can show.</summary>
     public static int ClampMaxHeight(int requested) =>
@@ -46,6 +50,8 @@ public sealed record ListSettings
     {
         if (!IsImportantOnTop) return "game's order kept";
 
-        return IsCountdownOnTop ? "emergencies then countdowns on top" : "emergencies on top, countdowns in the game's order";
+        if (!IsCountdownOnTop) return "emergencies on top, countdowns in the game's order";
+
+        return IsCountdownSoonestFirst ? "emergencies then countdowns on top, countdowns soonest first" : "emergencies then countdowns on top, countdowns among themselves in the game's order";
     }
 }
