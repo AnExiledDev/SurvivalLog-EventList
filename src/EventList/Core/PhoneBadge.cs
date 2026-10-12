@@ -14,7 +14,7 @@ public readonly record struct EventText(string? State, long DeadlineGameSeconds)
 /// </summary>
 public sealed record PhoneBadge
 {
-    /// <summary>The state the game gives an event text from delivery until it is accepted, refused or runs out.</summary>
+    /// <summary>The state the game gives an event text from delivery until it is accepted or runs out.</summary>
     public const string WaitingState = "pending";
 
     public static readonly PhoneBadge None = new(0, false);
