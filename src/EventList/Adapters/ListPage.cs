@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Threading;
 using EventList.Core;
 using GameCore.HotUpdate.ReduxUI;
 
@@ -16,12 +15,11 @@ internal sealed class ListPage
     private const string ScriptResource = "EventList.eventlist.js";
 
     private readonly PageWatch _watch = new();
+    private readonly ReplySlot _replies = new();
     private readonly ListSettings _settings;
     private readonly Action<string> _log;
     private readonly string _check;
     private string? _install;
-    private string? _reply;
-    private bool _hasReportedRunFailure;
 
     public ListPage(ListSettings settings, Action<string> log)
     {
@@ -32,7 +30,7 @@ internal sealed class ListPage
 
     public void Tick(double now)
     {
-        var turn = _watch.Step(now, Interlocked.Exchange(ref _reply, null));
+        var turn = _watch.Step(now, _replies.Take());
 
         if (turn.LogLine != null) _log(turn.LogLine);
 
@@ -40,30 +38,27 @@ internal sealed class ListPage
 
         var javaScript = turn.Send == PageSend.Install ? Install() : _check;
 
-        if (Run(javaScript)) return;
-
-        if (_watch.NotSent(now) is { } line) _log(line);
+        if (Run(javaScript, now) is { } line) _log(line);
     }
 
-    private bool Run(string javaScript)
+    /// <summary>Sends the call; returns a line for the log when it could not leave.</summary>
+    private string? Run(string javaScript, double now)
     {
         var webView = GameSingleton.Existing<ReduxUISystem>()?.GetWebUILayer()?.canvasWebViewPrefab?.WebView;
 
-        if (webView == null) return false;
+        if (webView == null) return _watch.NotSent(now);
+
+        var call = _replies.Open();
 
         try
         {
-            webView.ExecuteJavaScript(javaScript, (Action<string>)(result => Interlocked.Exchange(ref _reply, result ?? "")));
+            webView.ExecuteJavaScript(javaScript, (Action<string>)(result => _replies.Offer(call, result ?? "")));
 
-            return true;
+            return null;
         }
         catch (Exception ex)
         {
-            if (!_hasReportedRunFailure) _log("could not run script in the web UI (reported once): " + ex.Message);
-
-            _hasReportedRunFailure = true;
-
-            return false;
+            return _watch.RunFailed(now, ex.Message);
         }
     }
 

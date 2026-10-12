@@ -58,6 +58,9 @@ public sealed class PageWatch
     /// <summary>The call from the last step never left: the game's web view is not up yet.</summary>
     public string? NotSent(double now) => Settle(PageAnswer.NoWebView, now);
 
+    /// <summary>The call from the last step never left: the web view threw. Each different message is logged once.</summary>
+    public string? RunFailed(double now, string message) => Settle(PageAnswer.RunFailedPrefix + message, now);
+
     private PageTurn Send(PageSend send, double now)
     {
         _awaiting = send;
@@ -69,13 +72,15 @@ public sealed class PageWatch
     private string? Settle(string answer, double now)
     {
         var sent = _awaiting;
-        var isUnknown = answer is PageAnswer.NoWebView or PageAnswer.NoAnswer;
+        var isUnknown = answer is PageAnswer.NoWebView or PageAnswer.NoAnswer || answer.StartsWith(PageAnswer.RunFailedPrefix, StringComparison.Ordinal);
         _awaiting = PageSend.Nothing;
         _nextCheckAt = now + CheckSeconds;
 
-        if (sent == PageSend.Install && !isUnknown) return SettleInstall(answer, now);
+        // An install answered "nopage" lost a race with a scene change: the frame went away between the check and the
+        // install. That says nothing about the script, so it is settled like a check and the next check decides again.
+        if (sent == PageSend.Install && !isUnknown && answer != PageAnswer.NoPage) return SettleInstall(answer, now);
 
-        if (sent == PageSend.Install) _nextInstallAt = now + CheckSeconds;
+        if (isUnknown && sent == PageSend.Install) _nextInstallAt = now + CheckSeconds;
         else if (!isUnknown) _isInstallWanted = answer == PageAnswer.Missing;
 
         return LogOnce(answer, Describe(answer));
@@ -111,6 +116,7 @@ public sealed class PageWatch
         PageAnswer.NoWebView => "the game's web UI is not up yet",
         PageAnswer.NoAnswer => $"the web UI did not answer within {AnswerWaitSeconds:0}s",
         PageAnswer.InstallLeftNothing => "the page script ran but left nothing behind",
+        _ when answer.StartsWith(PageAnswer.RunFailedPrefix, StringComparison.Ordinal) => "could not run script in the web UI: " + answer.Substring(PageAnswer.RunFailedPrefix.Length),
         _ when answer.StartsWith(PageAnswer.UnsupportedPrefix, StringComparison.Ordinal) => $"CoreUI1 is not the page this mod was written for, so the list is left as the game draws it ({answer})",
         _ => "the page answered: " + answer
     };

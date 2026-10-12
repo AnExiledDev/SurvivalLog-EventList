@@ -98,6 +98,52 @@ public class PageWatchTests
         Assert.Contains(sends, sent => sent.Send == PageSend.Install);
     }
 
+    /// <summary>A scene change between the check and the install takes the page away; the script did not fail, so there is no long wait.</summary>
+    [Fact]
+    public void An_install_that_finds_no_page_is_sent_again_as_soon_as_the_page_is_back()
+    {
+        var watch = InstallingWatch(out var now);
+        var answeredAt = now + Frame;
+
+        var answer = watch.Step(answeredAt, PageAnswer.NoPage);
+
+        var sends = AnswerEverySend(watch, answeredAt + Frame, answeredAt + PageWatch.InstallRetrySeconds + PageWatch.CheckSeconds, PageAnswer.Missing);
+        var retry = sends.FirstOrDefault(sent => sent.Send == PageSend.Install);
+
+        Assert.Equal(PageSend.Install, retry.Send);
+        Assert.True(retry.At < answeredAt + PageWatch.CheckSeconds + 1, $"the script was sent again {retry.At - answeredAt:0.0}s after the page went away");
+        Assert.DoesNotContain("failed", answer.LogLine ?? "");
+    }
+
+    [Fact]
+    public void Each_different_reason_the_web_view_refused_a_call_is_logged_once()
+    {
+        var watch = new PageWatch();
+
+        watch.Step(0, null);
+        var first = watch.RunFailed(0, "the view is disposed");
+        watch.Step(PageWatch.CheckSeconds, null);
+        var repeated = watch.RunFailed(PageWatch.CheckSeconds, "the view is disposed");
+        watch.Step(2 * PageWatch.CheckSeconds, null);
+        var different = watch.RunFailed(2 * PageWatch.CheckSeconds, "no main frame");
+
+        Assert.Contains("the view is disposed", first);
+        Assert.Null(repeated);
+        Assert.Contains("no main frame", different);
+    }
+
+    [Fact]
+    public void A_call_the_web_view_refused_is_tried_again_after_the_check_interval()
+    {
+        var watch = new PageWatch();
+
+        watch.Step(0, null);
+        watch.RunFailed(0, "the view is disposed");
+
+        Assert.Equal(PageSend.Nothing, watch.Step(PageWatch.CheckSeconds - Frame, null).Send);
+        Assert.Equal(PageSend.Check, watch.Step(PageWatch.CheckSeconds, null).Send);
+    }
+
     [Fact]
     public void A_repeated_answer_is_logged_only_the_first_time()
     {
