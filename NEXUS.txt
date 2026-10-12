@@ -1,8 +1,8 @@
 Name: Event List
-Summary: Keeps the events list on the HUD to a fixed height that scrolls, with emergencies and the soonest countdowns on top.
+Summary: Keeps the events list on the HUD to a fixed height that scrolls, with emergencies and the soonest countdowns on top, and puts a badge on the phone for event texts you have not accepted yet.
 
 Description (BBCode):
-Tired of the events list running down your screen, or hiding events behind "...N more"? Event List keeps the list to a fixed height and lets the rest scroll. Emergencies and running countdowns move to the top so you never miss them.
+Tired of the events list running down your screen, or hiding events behind "...N more"? Event List keeps the list to a fixed height and lets the rest scroll. Emergencies and running countdowns move to the top so you never miss them. And a second badge on the phone counts the event texts still waiting for you to accept them, so those are not missed either.
 
 [size=5]Main features[/size]
 [list]
@@ -12,13 +12,14 @@ Tired of the events list running down your screen, or hiding events behind "...N
 [*][b]Countdowns next[/b]: events with a running countdown come right after, the one about to run out first.[/*]
 [*][b]Back to the top[/b]: when an event becomes important the list scrolls up to show it, but never while your pointer is on the list.[/*]
 [*][b]Clicks work as before[/b]: clicks on the list and around it land where they did.[/*]
+[*][b]Event badge on the phone[/b]: a second badge on the phone button, and on the messages app inside the phone, counts the event texts waiting for you to accept them. It turns orange with an hourglass when one of them has a countdown, and goes away once nothing is waiting. The game's own red badge stays as it is.[/*]
 [/list]
-Event List only changes how the list is drawn on screen. It never changes the game's data, adds nothing to your save and does not edit game files. You can remove it at any time.
+Event List only changes what is drawn on screen. It reads the texts in your phone to count the waiting event texts, and never changes the game's data, adds nothing to your save and does not edit game files. You can remove it at any time.
 
 Works in any game language.
 
 [size=5]Known issues[/size]
-The soonest-first order of countdowns is new in 0.2.0 and has not been tried in the game yet. With it on, a whole group can move: the normal events can sit above the main events when their countdown runs out sooner. Turn off CountdownSoonestFirst in the config if you prefer the game's order. The rescue and siege boxes are separate panels and stay where the game puts them. If you run into anything strange, please tell me (see Feedback below).
+The event badge on the phone is new in 0.3.0 and has not been seen in the game yet. It is checked every two seconds, so a new event text can take that long to show on it, and like the game's own badge it counts nothing while the phone is locked. Turn off PhoneEventBadge in the config if you do not want it. The soonest-first order of countdowns is new in 0.2.0 and has not been tried in the game yet. With it on, a whole group can move: the normal events can sit above the main events when their countdown runs out sooner. Turn off CountdownSoonestFirst in the config if you prefer the game's order. The rescue and siege boxes are separate panels and stay where the game puts them. If you run into anything strange, please tell me (see Feedback below).
 
 [size=5]Requirements[/size]
 [list]

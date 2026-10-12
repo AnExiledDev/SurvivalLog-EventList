@@ -13,7 +13,7 @@ In Survival Log the events list on the left of the screen grows down the screen 
 - **Soonest countdown first**: among the countdowns, the one with the least time left comes first.
 - **Back to the top when it matters**: when an event becomes important the list scrolls back to the top so you see it. If the pointer is over the list at that moment, the scroll waits until the pointer leaves, so a list you are reading never jumps.
 - **Clicks land where they did**: a list that fits keeps the game's click areas on each row. A list that overflows takes clicks and the wheel as one box, so a row scrolled out of sight never catches a click meant for the world. Clicks beside or below the list reach the game as before.
-- **Event badge on the phone**: a second badge on the phone button, and on the messages app inside the phone, counts the event texts still waiting for you to accept them. It is teal, on the other corner from the game's red badge for unread texts, which stays as it is. When one of the waiting texts can run out, it turns orange with an hourglass. It goes away once nothing is waiting.
+- **Event badge on the phone**: a second badge on the phone button, and on the messages app inside the phone, counts the event texts still waiting for you to accept them. It is teal, on the other corner from the game's red badge for unread event and trade texts, which stays as it is. When one of the waiting texts has a countdown, it turns orange with an hourglass. It goes away once nothing is waiting.
 - **Survives reloads**: the HUD can reload after a scene change; the mod notices within a couple of seconds and sets the list up again.
 - **Steps aside after a game update**: if the HUD changes so the mod no longer recognises it, the list is left exactly as the game draws it and the log says why in one line.
 - **Log file**: the mod writes what it did at startup and what the HUD answered to `BepInEx\event-list.log`.
@@ -86,9 +86,9 @@ Found a bug, have an idea, or something feels off? Come say so on the Core Direc
 
 ## Changelog
 
-- **0.3.0**: A second badge on the phone counts the event texts waiting for you to accept them, so they are not missed. It turns orange with an hourglass when one of them can run out. Turn it off with `PhoneEventBadge`.
+- **0.3.0**: A second badge on the phone counts the event texts waiting for you to accept them, so they are not missed. It turns orange with an hourglass when one of them has a countdown. Turn it off with `PhoneEventBadge`.
 - **0.2.0**: Countdowns on top are ordered by time left, the one about to run out first.
-- **0.1.0**: First release.
+- **0.1.0**: First version.
 
 ## Build
 

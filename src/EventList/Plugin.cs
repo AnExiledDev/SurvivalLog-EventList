@@ -26,7 +26,7 @@ public sealed class Plugin : BasePlugin
         var isCountdownSoonestFirst = Config.Bind("EventList", "CountdownSoonestFirst", true,
             "Order the countdowns on top by time left, the one about to run out first. Countdowns with the same time left, and any whose time cannot be read, keep the game's order, the unreadable ones last. Off: countdowns keep the game's order among themselves. Does nothing while CountdownOnTop or ImportantOnTop is off.").Value;
         var isPhoneBadgeOn = Config.Bind("EventList", "PhoneEventBadge", true,
-            "Show a second badge on the phone button, and on the messages app inside the phone, counting event texts still waiting to be accepted. It turns orange with an hourglass when one of them can run out. The game's own text badge is left as it is. Off: no event badge. Does nothing while Enabled is off.").Value;
+            "Show a second badge on the phone button, and on the messages app inside the phone, counting event texts still waiting to be accepted. It turns orange with an hourglass when one of them has a countdown. The game's own text badge is left as it is. Off: no event badge. Does nothing while Enabled is off.").Value;
         var log = new ListLog(Log, Path.Combine(Paths.BepInExRootPath, "event-list.log"));
         var settings = ListSettings.From(maxHeight, isImportantOnTop, isCountdownOnTop, isCountdownSoonestFirst);
 

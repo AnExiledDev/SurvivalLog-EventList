@@ -22,6 +22,19 @@ public class PhoneBadgePageTests
 
     private const string AppBadge = "phone.smsApp.querySelector('.sl-eventbadge')";
 
+    /// <summary>
+    /// Root.html's iframes, in the global <c>root</c>: one that throws on reading its location (as a frame from another
+    /// origin does), CoreUI1 (this script's own page), then the phone, in the global <c>phone</c>.
+    /// </summary>
+    private const string RootWithThreeFrames =
+        "var phone = buildPhonePage({});" +
+        "window.location = 'https://ui.local/CoreUI1.html';" +
+        "var rootFrames = [" +
+        "{ contentWindow: { get location() { throw new Error('Blocked a frame from accessing a cross-origin frame'); } } }," +
+        "{ contentWindow: window }," +
+        "{ contentWindow: { location: 'https://ui.local/PhoneSMS.html', document: phone.document } }];" +
+        "var root = { querySelectorAll: function (selector) { return selector === 'iframe' ? rootFrames : []; } };";
+
     private static readonly string Defaults = PageCalls.Settings(ListSettings.From(0, true, true, true));
 
     private static readonly string Clock = ((char)0x231B).ToString();
@@ -200,6 +213,36 @@ public class PhoneBadgePageTests
 
         Assert.StartsWith(PageAnswer.UnsupportedPrefix, page.Apply(Defaults, Badge(2, false), NoPhoneScreen));
         Assert.Equal("2", page.Text(HudBadge + ".textContent"));
+    }
+
+    [Fact]
+    public void A_missing_badge_spot_is_still_reported_on_a_page_whose_list_the_script_does_not_fit()
+    {
+        var page = PageScript.On(PhoneButtonGone);
+
+        page.Run("window.Vue = undefined;");
+
+        Assert.Equal(
+            PageAnswer.UnsupportedPrefix + "no Vue; no phone button on the HUD, so the event badge is not shown there",
+            page.Apply(Defaults, Badge(2, false), NoPhoneScreen));
+    }
+
+    /// <summary>
+    /// The plugin's own check call, run from Root.html as the game's web view runs it: it must step past a frame it may
+    /// not read, find CoreUI1, and hand the script the phone frame's document, so the messages app gets its badge.
+    /// </summary>
+    [Fact]
+    public void The_check_call_from_Root_hands_the_phone_frames_document_to_the_script()
+    {
+        var page = PageScript.On(PhoneUp);
+        var badge = PhoneBadge.Of(new[] { new EventText(PhoneBadge.WaitingState, 0) });
+        var check = PageCalls.Check(ListSettings.From(0, true, true, true), badge);
+
+        page.Run(RootWithThreeFrames);
+
+        Assert.Equal(PageAnswer.Ok, page.Text("(function (document) { return " + check + "; })(root)"));
+        Assert.True(page.Is(AppBadge), "the messages app in the phone frame got no event badge");
+        Assert.Equal("1", page.Text(AppBadge + ".textContent"));
     }
 
     /// <summary>A plugin that sends no badge, or one this script cannot read, draws nothing rather than a wrong count.</summary>

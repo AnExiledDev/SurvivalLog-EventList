@@ -11,7 +11,7 @@ Settings live in `BepInEx\config\com.dev.survivallog.eventlist.cfg`, created the
 | `ImportantOnTop` | `true` | Moves important events to the top of the list: emergencies first, then running countdowns. `false` keeps the game's order; the list still has its fixed height. |
 | `CountdownOnTop` | `true` | Counts an event with a running countdown as important, so it moves up below the emergencies. `false`: only emergencies move. Does nothing while `ImportantOnTop` is `false`. |
 | `CountdownSoonestFirst` | `true` | Orders the countdowns on top by time left, the one about to run out first. `false`: countdowns keep the game's order among themselves. Does nothing while `CountdownOnTop` or `ImportantOnTop` is `false`. |
-| `PhoneEventBadge` | `true` | Shows a second badge on the phone button on the HUD, and on the messages app inside the phone, counting the event texts still waiting to be accepted. It turns orange with an hourglass when one of them can run out. The game's own red text badge is left as it is. `false`: no event badge. Does nothing while `Enabled` is `false`. |
+| `PhoneEventBadge` | `true` | Shows a second badge on the phone button on the HUD, and on the messages app inside the phone, counting the event texts still waiting to be accepted. It turns orange with an hourglass when one of them has a countdown. The game's own red text badge is left as it is. `false`: no event badge. Does nothing while `Enabled` is `false`. |
 
 `MaxHeight` is held between 60 and 600. A value below 60 is raised to 60 and a value above 600 is lowered to 600. `0` or a negative number means the default, 136, which is room for both group headers and four rows. For comparison, the game's own scroll box, when it uses one, stops at 220.
 

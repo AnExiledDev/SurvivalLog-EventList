@@ -90,10 +90,19 @@
     var isScrollPending = false;
 
     // The badge is drawn before the list and whatever the list finds, so a list this script cannot hold still leaves
-    // the badge working. A badge spot that should be on the page and is not is reported after 'ok; '.
+    // the badge working. A badge spot that should be on the page and is not is reported after the list's answer and
+    // '; ', so a held list answers 'ok; ' and the note.
     function apply(next, nextBadge, phoneDocument) {
         var badgeNote = showBadges(readBadge(nextBadge), phoneDocument);
 
+        return withNote(applyList(next), badgeNote);
+    }
+
+    function withNote(answer, note) {
+        return note ? answer + '; ' + note : answer;
+    }
+
+    function applyList(next) {
         try {
             var wanted = readSettings(next);
             var isChanged = wanted.maxHeight !== settings.maxHeight || wanted.importantOnTop !== settings.importantOnTop || wanted.countdownOnTop !== settings.countdownOnTop || wanted.soonestFirst !== settings.soonestFirst;
@@ -115,7 +124,7 @@
             if (hook !== previousHook || isChanged) window.Vue.nextTick(function () { safeRefresh(true); });
             else safeRefresh(false);
 
-            return takeError() || (badgeNote ? 'ok; ' + badgeNote : 'ok');
+            return takeError() || 'ok';
         } catch (e) {
             return 'error: ' + describe(e);
         }
@@ -171,7 +180,8 @@
 
         placeBadge(document, button, badge, HUD_BADGE_CSS);
 
-        // The game's button clips anything past its edges, except while it shows its own badge; ours sits past them too.
+        // The badge sits past the button's edges. Today has-entry-tip keeps the button from clipping it (its overflow:
+        // visible beats interactive-btn's hidden); the inline value is insurance against an update dropping that class.
         setStyle(button, 'overflow', badge.waiting ? 'visible' : '');
 
         return true;
