@@ -10,16 +10,19 @@
     var STYLE_ID = 'sl-eventlist-style';
     var ACTIVE_CLASS = 'sl-eventlist';
     var HEIGHT_VAR = '--sl-eventlist-max';
+    var PANEL = '.event-panel';
+    var BOX = '.event-panel > .event-scroll';
+    var ROW = '.event-item-row';
     var MARK = 'data-sl-important';
     var CLICKABLE = 'data-interactive';
-    var DEFAULT_MAX_HEIGHT = 120;
+    var DEFAULT_MAX_HEIGHT = 136;
     var TIER_RANK = { '': 0, deadline: 1, crisis: 2 };
 
     // The class and the height sit on <html>, outside the body the page's click-through watches, so setting them
     // never makes it resend its rects. The scrollbar is the game's own 4px .event-scroll scrollbar.
     // CSS order moves rows on screen without moving them in the DOM, so Vue's keyed patching never sees a change.
     var CSS = [
-        'html.sl-eventlist .event-panel > .event-scroll { max-height: var(--sl-eventlist-max, 120px); overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; }',
+        'html.sl-eventlist .event-panel > .event-scroll { max-height: var(--sl-eventlist-max, ' + DEFAULT_MAX_HEIGHT + 'px); overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; }',
         'html.sl-eventlist .event-panel > .event-scroll > .event-group { flex-shrink: 0; }',
         'html.sl-eventlist .event-panel > .event-scroll > .event-group[data-sl-important="deadline"] { order: -1; }',
         'html.sl-eventlist .event-panel > .event-scroll > .event-group[data-sl-important="crisis"] { order: -2; }',
@@ -28,15 +31,17 @@
         'html.sl-eventlist .event-group > .event-item-row[data-sl-important="crisis"] { order: -2; }'
     ].join('\n');
 
-    var settings = { maxHeight: DEFAULT_MAX_HEIGHT, importantOnTop: true };
+    var settings = readSettings(null);
     var hook = null;
     var lastImportant = {};
     var lastError = '';
+    var isPointerOver = false;
+    var isScrollPending = false;
 
     function apply(next) {
         try {
             var wanted = readSettings(next);
-            var isChanged = wanted.maxHeight !== settings.maxHeight || wanted.importantOnTop !== settings.importantOnTop;
+            var isChanged = wanted.maxHeight !== settings.maxHeight || wanted.importantOnTop !== settings.importantOnTop || wanted.countdownOnTop !== settings.countdownOnTop;
             var previousHook = hook;
             settings = wanted;
 
@@ -61,12 +66,14 @@
         }
     }
 
+    // Anything the plugin did not send, or sent in a shape this script does not know, means the default.
     function readSettings(next) {
         var height = Number(next && next.maxHeight);
 
         return {
             maxHeight: isFinite(height) && height > 0 ? Math.round(height) : DEFAULT_MAX_HEIGHT,
-            importantOnTop: !(next && next.importantOnTop === false)
+            importantOnTop: !(next && next.importantOnTop === false),
+            countdownOnTop: !(next && next.countdownOnTop === false)
         };
     }
 
@@ -107,22 +114,61 @@
             function () { return crisisKey(st); }
         ], function () { safeRefresh(false); }, { flush: 'post' }));
 
+        // With the hover flag held on, it no longer says where the pointer is, so the script follows the pointer itself.
+        // Capture phase, so a handler in the page that stops the event cannot hide it from us.
+        document.addEventListener('mouseover', onPointerOver, true);
+        document.addEventListener('mouseout', onPointerOut, true);
+        hook.stops.push(function () {
+            document.removeEventListener('mouseover', onPointerOver, true);
+            document.removeEventListener('mouseout', onPointerOut, true);
+        });
+
         return '';
     }
 
     function unhook() {
         if (!hook) return;
 
-        for (var i = 0; i < hook.stops.length; i++) {
+        var dropped = hook;
+        hook = null;
+        lastImportant = {};
+        isPointerOver = false;
+        isScrollPending = false;
+
+        for (var i = 0; i < dropped.stops.length; i++) {
             try {
-                hook.stops[i]();
+                dropped.stops[i]();
             } catch (e) {
                 // A watcher that cannot stop is dropped with the rest of the hook.
             }
         }
 
-        hook = null;
-        lastImportant = {};
+        try {
+            giveBackToGame(dropped);
+        } catch (e) {
+            // A page going away or changing shape may refuse some of it; what is left goes with the page.
+        }
+    }
+
+    // Puts the list back the way the game draws it: hover flag off as when the pointer is away, the game's own click
+    // areas (the box takes clicks through its own class in scroll mode, rows take their own otherwise), and no marks.
+    function giveBackToGame(dropped) {
+        var box = document.querySelector(BOX);
+
+        dropped.st.eventHover = false;
+
+        if (box) {
+            var rows = box.querySelectorAll(ROW);
+            var rowsCatch = !dropped.ss.eventScrollMode;
+
+            setFlag(box, CLICKABLE, false);
+
+            for (var i = 0; i < rows.length; i++) setFlag(rows[i], CLICKABLE, rowsCatch);
+
+            clearMarks(box);
+        }
+
+        dropped.core.clickThrough.syncNowAfterReflow();
     }
 
     // In the production build the root vnode and its component stay on the mount point, and setupState is what the
@@ -182,7 +228,7 @@
     function refresh(force) {
         if (!hook) return;
 
-        var box = document.querySelector('.event-panel > .event-scroll');
+        var box = document.querySelector(BOX);
 
         if (!box) {
             lastImportant = {};
@@ -193,7 +239,7 @@
         }
 
         var changed = markImportance(box);
-        changed = routeClicks(box) || changed;
+        changed = routeClicks(box, hook.ss.eventScrollMode) || changed;
 
         if (changed || force) hook.core.clickThrough.syncNowAfterReflow();
     }
@@ -201,10 +247,11 @@
     // While the list overflows, the box takes clicks and the wheel as one rect and the rows give theirs up, the way the
     // game's own scroll mode does it. The page's click-through does not clip to scroll boxes, so a row scrolled out of
     // sight would otherwise still catch clicks meant for the world. A list that fits keeps the game's per-row rects.
-    function routeClicks(box) {
+    // Returns whether any click area changed, so the click-through is resent only then.
+    function routeClicks(box, isGameScrollMode) {
         var isOverflowing = box.scrollHeight > box.clientHeight + 1;
-        var rowsCatch = !isOverflowing && !hook.ss.eventScrollMode;
-        var rows = box.querySelectorAll('.event-item-row');
+        var rowsCatch = !isOverflowing && !isGameScrollMode;
+        var rows = box.querySelectorAll(ROW);
         var changed = setFlag(box, CLICKABLE, isOverflowing);
 
         for (var i = 0; i < rows.length; i++) changed = setFlag(rows[i], CLICKABLE, rowsCatch) || changed;
@@ -240,7 +287,7 @@
 
                 if (!showsItem(rowEls[k], item)) return false;
 
-                var tier = tierOf(item, crisis);
+                var tier = tierOf(item, crisis, settings.countdownOnTop);
                 marks.push([rowEls[k], tier]);
 
                 if (!tier) continue;
@@ -260,19 +307,51 @@
 
         lastImportant = important;
 
-        if (isNewlyImportant) box.scrollTop = 0;
+        if (isNewlyImportant) scrollToTopWhenFree(box);
 
         return changed;
     }
 
+    // An event that newly becomes important brings the list back to the top so it is seen, but never under the
+    // pointer: a player reading or scrolling the list is not yanked, and the list goes back up once the pointer leaves.
+    function scrollToTopWhenFree(box) {
+        if (isPointerOver) isScrollPending = true;
+        else box.scrollTop = 0;
+    }
+
+    function onPointerOver(e) {
+        pointerMoved(isInPanel(e.target));
+    }
+
+    // Moving between parts of the list fires mouseout too; only a move to somewhere outside it is leaving.
+    function onPointerOut(e) {
+        if (!isInPanel(e.relatedTarget)) pointerMoved(false);
+    }
+
+    function pointerMoved(isOver) {
+        isPointerOver = isOver;
+
+        if (isOver || !isScrollPending) return;
+
+        var box = document.querySelector(BOX);
+        isScrollPending = false;
+
+        if (box) box.scrollTop = 0;
+    }
+
+    function isInPanel(el) {
+        return !!(el && typeof el.closest === 'function' && el.closest(PANEL));
+    }
+
     // crisis: the game shows this event as one of its red emergency entries, or it is the zombie wave that is
-    // spawning or charging. deadline: the event shows a running countdown. Extra tracker rows are never important.
-    function tierOf(item, crisis) {
+    // spawning or charging. deadline: the event shows a running countdown, while countdowns count as important.
+    // Extra tracker rows are never important.
+    function tierOf(item, crisis, isCountdownImportant) {
         var id = item && item.eventConfigId;
 
         if (!(id > 0) || item.extraRow) return '';
         if (crisis[id]) return 'crisis';
-        if (item.timeActive && item.remainSeconds > 0) return 'deadline';
+        if (isCountdownImportant && item.timeActive && item.remainSeconds > 0) return 'deadline';
 
         return '';
     }
@@ -353,5 +432,11 @@
         return String(e && e.message ? e.message : e);
     }
 
-    window.__sleventlist = { version: '0.1.0', apply: apply };
+    // apply is the plugin's way in. rules are the parts that decide what the list does, kept here for the tests; the
+    // page never calls them.
+    window.__sleventlist = {
+        version: '0.1.0',
+        apply: apply,
+        rules: { readSettings: readSettings, tierOf: tierOf, crisisIds: crisisIds, routeClicks: routeClicks }
+    };
 })();

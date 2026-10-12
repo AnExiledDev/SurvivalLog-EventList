@@ -17,11 +17,13 @@ public sealed class Plugin : BasePlugin
         var isEnabled = Config.Bind("EventList", "Enabled", true,
             "Hold the events list on the left of the HUD to a fixed height and let the rest scroll. Off: the list is left exactly as the game draws it.").Value;
         var maxHeight = Config.Bind("EventList", "MaxHeight", ListSettings.DefaultMaxHeight,
-            $"Tallest the events list may grow, in the page's pixels (the game's own scroll box stops at 220). 0 means the default, {ListSettings.DefaultMaxHeight}, about the game's four-row list. Held between {ListSettings.LowestMaxHeight} and {ListSettings.HighestMaxHeight}.").Value;
+            $"Tallest the events list may grow, in the page's pixels (the game's own scroll box stops at 220). 0 means the default, {ListSettings.DefaultMaxHeight}, room for both group headers and four rows. Held between {ListSettings.LowestMaxHeight} and {ListSettings.HighestMaxHeight}.").Value;
         var isImportantOnTop = Config.Bind("EventList", "ImportantOnTop", true,
-            "Move important events to the top of the list: an event the game shows as an emergency or a zombie wave first, then events with a running countdown. Off: the game's order.").Value;
+            "Move important events to the top of the list: an event the game shows as an emergency or a zombie wave first, then events with a running countdown (see CountdownOnTop). Off: the game's order.").Value;
+        var isCountdownOnTop = Config.Bind("EventList", "CountdownOnTop", true,
+            "Count an event with a running countdown as important, so it moves to the top, below emergencies. Off: only emergencies move. Does nothing while ImportantOnTop is off.").Value;
         var log = new ListLog(Log, Path.Combine(Paths.BepInExRootPath, "event-list.log"));
-        var settings = ListSettings.From(maxHeight, isImportantOnTop);
+        var settings = ListSettings.From(maxHeight, isImportantOnTop, isCountdownOnTop);
 
         if (!isEnabled)
         {

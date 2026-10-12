@@ -23,4 +23,7 @@ public static class PageAnswer
 
     /// <summary>Not from the page: nothing came back in time.</summary>
     public const string NoAnswer = "no answer";
+
+    /// <summary>Not from the page: starts every answer where the web view threw instead of taking the call; the rest is its message.</summary>
+    public const string RunFailedPrefix = "run failed: ";
 }
