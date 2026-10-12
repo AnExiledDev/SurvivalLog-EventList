@@ -71,6 +71,36 @@ public class PageWatchTests
         Assert.Contains(sends, sent => sent.Send == PageSend.Check);
     }
 
+    /// <summary>The list is held and only a badge spot is missing: the script is in the page, so it is not sent again.</summary>
+    [Fact]
+    public void An_install_answered_ok_with_a_note_is_not_sent_again()
+    {
+        var watch = InstallingWatch(out var now);
+        var answer = PageAnswer.OkWithNotePrefix + "no phone button on the HUD";
+
+        var installed = watch.Step(now + Frame, answer);
+        var sends = AnswerEverySend(watch, now + 2 * Frame, now + PageWatch.InstallRetrySeconds + 2 * PageWatch.CheckSeconds, answer);
+
+        Assert.DoesNotContain("failed", installed.LogLine ?? "");
+        Assert.DoesNotContain(sends, sent => sent.Send == PageSend.Install);
+        Assert.Contains(sends, sent => sent.Send == PageSend.Check);
+    }
+
+    [Fact]
+    public void A_note_after_ok_is_logged_once_beside_the_list_being_held()
+    {
+        var watch = new PageWatch();
+        var answer = PageAnswer.OkWithNotePrefix + "no messages app on the phone screen";
+
+        watch.Step(0, null);
+        var first = watch.Step(Frame, answer).LogLine;
+        watch.Step(Frame + PageWatch.CheckSeconds, null);
+        var second = watch.Step(2 * Frame + PageWatch.CheckSeconds, answer).LogLine;
+
+        Assert.Equal("the events list is held to its height; no messages app on the phone screen", first);
+        Assert.Null(second);
+    }
+
     [Fact]
     public void A_failed_install_is_not_tried_again_for_thirty_seconds()
     {

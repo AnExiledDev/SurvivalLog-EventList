@@ -6,6 +6,9 @@ public static class PageAnswer
     /// <summary>The list is capped and, if set, sorted.</summary>
     public const string Ok = "ok";
 
+    /// <summary>Starts an answer where the list is done as with <see cref="Ok"/> but a spot for the event badge is missing; the rest says which.</summary>
+    public const string OkWithNotePrefix = "ok; ";
+
     /// <summary>Root.html has no CoreUI1 frame: the main menu, or a load in progress.</summary>
     public const string NoPage = "nopage";
 

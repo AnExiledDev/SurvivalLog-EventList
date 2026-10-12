@@ -1,6 +1,6 @@
 # Event List
 
-Keeps the events list on the HUD to a fixed height, scrollable, with the important events on top.
+Keeps the events list on the HUD to a fixed height, scrollable, with the important events on top, and puts a badge on the phone for event texts you have not accepted yet.
 
 In Survival Log the events list on the left of the screen grows down the screen as events pile up, and during a rescue, siege or emergency the game cuts it to four rows and a "...N more" line. Event List holds the list to a fixed height, lets the rest scroll, and moves emergencies and running countdowns to the top so they are never hidden.
 
@@ -13,11 +13,12 @@ In Survival Log the events list on the left of the screen grows down the screen 
 - **Soonest countdown first**: among the countdowns, the one with the least time left comes first.
 - **Back to the top when it matters**: when an event becomes important the list scrolls back to the top so you see it. If the pointer is over the list at that moment, the scroll waits until the pointer leaves, so a list you are reading never jumps.
 - **Clicks land where they did**: a list that fits keeps the game's click areas on each row. A list that overflows takes clicks and the wheel as one box, so a row scrolled out of sight never catches a click meant for the world. Clicks beside or below the list reach the game as before.
+- **Event badge on the phone**: a second badge on the phone button, and on the messages app inside the phone, counts the event texts still waiting for you to accept them. It is teal, on the other corner from the game's red badge for unread texts, which stays as it is. When one of the waiting texts can run out, it turns orange with an hourglass. It goes away once nothing is waiting.
 - **Survives reloads**: the HUD can reload after a scene change; the mod notices within a couple of seconds and sets the list up again.
 - **Steps aside after a game update**: if the HUD changes so the mod no longer recognises it, the list is left exactly as the game draws it and the log says why in one line.
 - **Log file**: the mod writes what it did at startup and what the HUD answered to `BepInEx\event-list.log`.
 
-Event List only changes how the list is drawn on screen. It never reads or writes the game's state, adds nothing to your save and does not edit game files. The game's own list and its data are never reordered; the order changes on screen only. You can remove it at any time; the list goes back to the game's own on the next start.
+Event List only changes what is drawn on screen. It reads the texts in your phone to count the waiting event texts, and never writes the game's state, adds nothing to your save and does not edit game files. The game's own list and its data are never reordered; the order changes on screen only. You can remove it at any time; the list goes back to the game's own on the next start.
 
 Importance comes from the game's own data for each event, never from its text, so it works in any game language.
 
@@ -38,6 +39,9 @@ The order is worked out again each time the game sends the list a new set of eve
 ## Known issues and limits
 
 - The soonest-first order of countdowns is new in 0.2.0 and has not been run in the game yet. If countdowns come out in an odd order, please tell me (see [Feedback](#feedback-and-bug-reports)).
+- The event badge on the phone is new in 0.3.0 and has not been seen in the game yet. If it sits in the wrong spot, shows the wrong count or does not show, please tell me (see [Feedback](#feedback-and-bug-reports)).
+- The event badge is checked every two seconds, so a new event text can take that long to show on it.
+- The event badge counts the same conversations as the game's own text badge: nothing while the phone is locked, and nothing from a contact who died or went missing.
 - The rescue, warehouse rescue and zombie siege boxes are separate panels with no event behind them, so they stay where the game puts them. A list row counts as an emergency only through the game's emergency entries or the zombie wave.
 - That an emergency event shows both as an emergency entry and as a row in this list, under the same event, is read from the game's code and has not been seen in game yet.
 - The game's "...N more" line never shows. To keep every event in the scroll box, the mod holds the list's own hover flag on. As far as the HUD's code shows, the game uses that flag only for how the list is drawn.
@@ -70,15 +74,21 @@ Settings live in `BepInEx\config\com.dev.survivallog.eventlist.cfg`, created the
 
 Tested on Survival Log 1.1.18317 with BepInEx `6.0.0-be.788`.
 
-Check `BepInEx\LogOutput.log` for `===== Event List 0.2.0 started`. With the default settings the full line reads `===== Event List 0.2.0 started: list at most 136px tall, emergencies then countdowns on top, countdowns soonest first`. With `Enabled` set to `false` it ends `off, EventList/Enabled is false; the list is left as the game draws it`.
+Check `BepInEx\LogOutput.log` for `===== Event List 0.3.0 started`. With the default settings the full line reads `===== Event List 0.3.0 started: list at most 136px tall, emergencies then countdowns on top, countdowns soonest first, event badge on the phone`. With `PhoneEventBadge` set to `false` it ends `no event badge` instead. With `Enabled` set to `false` it ends `off, EventList/Enabled is false; the list is left as the game draws it`.
 
-Once a game has loaded, look for `page script sent to CoreUI1 (install 1): the events list is held to its height`. If instead a line says `CoreUI1 is not the page this mod was written for`, a game update has changed the HUD and the list is left as the game draws it until the mod is updated.
+Once a game has loaded, look for `page script sent to CoreUI1 (install 1): the events list is held to its height`. If instead a line says `CoreUI1 is not the page this mod was written for`, a game update has changed the HUD and the list is left as the game draws it until the mod is updated. A line ending `so the event badge is not shown there` means the mod could not find the phone button or the messages app to put the badge on.
 
 The same lines are in `BepInEx\event-list.log`, with a timestamp each, and that file is kept across restarts.
 
 ## Feedback and bug reports
 
 Found a bug, have an idea, or something feels off? Come say so on the Core Directive Discord: https://discord.gg/trTsyxUFqg . You can also leave a comment on the Nexus page or [open an issue](https://github.com/AnExiledDev/SurvivalLog-EventList/issues). When reporting a bug, attach `BepInEx\LogOutput.log` and `BepInEx\event-list.log`.
+
+## Changelog
+
+- **0.3.0**: A second badge on the phone counts the event texts waiting for you to accept them, so they are not missed. It turns orange with an hourglass when one of them can run out. Turn it off with `PhoneEventBadge`.
+- **0.2.0**: Countdowns on top are ordered by time left, the one about to run out first.
+- **0.1.0**: First release.
 
 ## Build
 

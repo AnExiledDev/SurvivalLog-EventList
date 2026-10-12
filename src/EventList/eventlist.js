@@ -1,7 +1,10 @@
 // Event List: runs inside the CoreUI1 page, the iframe in Root.html that draws the HUD.
-// Holds the events list to a fixed height (the rest scrolls) and moves important events to the top.
-// Sent once per page load; the plugin then calls window.__sleventlist.apply(settings) every couple of seconds.
-// Touches only this page's DOM, one stylesheet, and the page-only eventHover flag; nothing reaches the game.
+// Holds the events list to a fixed height (the rest scrolls) and moves important events to the top, and puts the
+// event badge on the phone: how many event texts wait to be accepted.
+// Sent once per page load; the plugin then calls window.__sleventlist.apply(settings, badge, phoneDocument) every
+// couple of seconds. phoneDocument is the PhoneSMS page's, or null while the game has no phone screen up.
+// Touches only the DOM of this page and the phone page, one stylesheet in each, and the page-only eventHover flag;
+// nothing reaches the game.
 (function () {
     'use strict';
 
@@ -50,6 +53,35 @@
         return rules;
     }
 
+    // The event badge sits on the top-left corner, across from the game's own red text badge on the top-right, and is
+    // drawn in the game's badge shape at each spot's size. Waiting texts make it teal; once one of them can run out it
+    // turns orange, gains a clock and glows. It never takes the pointer, so clicks reach the button or app under it.
+    var BADGE_STYLE_ID = 'sl-eventbadge-style';
+    var BADGE_CLASS = 'sl-eventbadge';
+    var TIMED_CLASS = 'is-timed';
+    var CLOCK = '\u231B';
+
+    // The HUD's phone button has no class of its own; its icon is the one path no other CoreUI1 button draws.
+    var PHONE_ICON = 'M17 1.01L7 1c';
+    var HUD_ICONS = '.icon-sq > .icon-svg';
+    var PHONE_APP = '.app-dock > .is-sms';
+    var PHONE_DOCK = '.app-dock';
+
+    var HUD_BADGE_CSS = badgeCss({ edge: -4, height: 15, padding: 4, font: 9.5, border: '1px solid rgba(15, 15, 15, 0.8)' });
+    var APP_BADGE_CSS = badgeCss({ edge: -5, height: 22, padding: 6, font: 12, border: '2px solid #2a221b' });
+
+    function badgeCss(size) {
+        var badge = '.' + BADGE_CLASS;
+        var timed = badge + '.' + TIMED_CLASS;
+
+        return [
+            badge + ' { position: absolute; top: ' + size.edge + 'px; left: ' + size.edge + 'px; z-index: 5; box-sizing: border-box; min-width: ' + size.height + 'px; height: ' + size.height + 'px; padding: 0 ' + size.padding + 'px; border-radius: ' + (size.height / 2) + 'px; border: ' + size.border + '; display: flex; align-items: center; justify-content: center; font-size: ' + size.font + 'px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; white-space: nowrap; color: #e9fdff; background: linear-gradient(180deg, #2bb8c9 0%, #0b6f7c 100%); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.25); pointer-events: none; }',
+            timed + ' { color: #fff6e0; background: linear-gradient(180deg, #ffa632 0%, #d94f00 100%); animation: sl-eventbadge-glow 1.2s ease-in-out infinite; }',
+            '@keyframes sl-eventbadge-glow { 0%, 100% { box-shadow: 0 1px 2px rgba(0, 0, 0, 0.55), 0 0 0 0 rgba(255, 150, 40, 0); } 50% { box-shadow: 0 1px 2px rgba(0, 0, 0, 0.55), 0 0 7px 2px rgba(255, 150, 40, 0.8); } }',
+            'html.quality-low ' + timed + ' { animation: none; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.55), 0 0 5px 1px rgba(255, 150, 40, 0.7); }'
+        ].join('\n');
+    }
+
     var settings = readSettings(null);
     var hook = null;
     var lastImportant = {};
@@ -57,7 +89,11 @@
     var isPointerOver = false;
     var isScrollPending = false;
 
-    function apply(next) {
+    // The badge is drawn before the list and whatever the list finds, so a list this script cannot hold still leaves
+    // the badge working. A badge spot that should be on the page and is not is reported after 'ok; '.
+    function apply(next, nextBadge, phoneDocument) {
+        var badgeNote = showBadges(readBadge(nextBadge), phoneDocument);
+
         try {
             var wanted = readSettings(next);
             var isChanged = wanted.maxHeight !== settings.maxHeight || wanted.importantOnTop !== settings.importantOnTop || wanted.countdownOnTop !== settings.countdownOnTop || wanted.soonestFirst !== settings.soonestFirst;
@@ -79,7 +115,7 @@
             if (hook !== previousHook || isChanged) window.Vue.nextTick(function () { safeRefresh(true); });
             else safeRefresh(false);
 
-            return takeError() || 'ok';
+            return takeError() || (badgeNote ? 'ok; ' + badgeNote : 'ok');
         } catch (e) {
             return 'error: ' + describe(e);
         }
@@ -95,6 +131,113 @@
             countdownOnTop: !(next && next.countdownOnTop === false),
             soonestFirst: !(next && next.soonestFirst === false)
         };
+    }
+
+    // Anything the plugin did not send, or sent in a shape this script does not know, means no badge.
+    function readBadge(next) {
+        var waiting = Number(next && next.waiting);
+
+        if (!(isFinite(waiting) && waiting >= 1)) return { waiting: 0, timed: false };
+
+        return { waiting: Math.floor(waiting), timed: next.timed === true };
+    }
+
+    // The count the way the game writes its own badges, 9+ past nine, after a clock when a waiting text can run out.
+    function badgeLabel(badge) {
+        var count = badge.waiting > 9 ? '9+' : String(badge.waiting);
+
+        return badge.timed ? CLOCK + count : count;
+    }
+
+    // Returns '' or, for the log, which badge spot could not be found. Never throws: the list is applied after it.
+    function showBadges(badge, phoneDocument) {
+        try {
+            var missing = [];
+
+            if (!showHudBadge(badge)) missing.push('no phone button on the HUD, so the event badge is not shown there');
+            if (phoneDocument && !showAppBadge(phoneDocument, badge)) missing.push('no messages app on the phone screen, so the event badge is not shown there');
+
+            return missing.join('; ');
+        } catch (e) {
+            return 'event badge failed: ' + describe(e);
+        }
+    }
+
+    // False only when texts wait, the game says its phone button is up, and the button cannot be found.
+    function showHudBadge(badge) {
+        var button = hudPhoneButton();
+
+        if (!button) return !(badge.waiting && isPhoneButtonUp());
+
+        placeBadge(document, button, badge, HUD_BADGE_CSS);
+
+        // The game's button clips anything past its edges, except while it shows its own badge; ours sits past them too.
+        setStyle(button, 'overflow', badge.waiting ? 'visible' : '');
+
+        return true;
+    }
+
+    // False only when texts wait and the phone's home screen is showing without its messages app.
+    function showAppBadge(phoneDocument, badge) {
+        var app = phoneDocument.querySelector(PHONE_APP);
+
+        if (!app) return !(badge.waiting && phoneDocument.querySelector(PHONE_DOCK));
+
+        placeBadge(phoneDocument, app, badge, APP_BADGE_CSS);
+
+        return true;
+    }
+
+    function hudPhoneButton() {
+        var icons = document.querySelectorAll(HUD_ICONS);
+
+        for (var i = 0; i < icons.length; i++) {
+            var path = icons[i].children[0];
+
+            if (path && String(path.getAttribute('d') || '').indexOf(PHONE_ICON) === 0) return icons[i].parentElement;
+        }
+
+        return null;
+    }
+
+    function isPhoneButtonUp() {
+        var ss = rootSetupState();
+
+        return !!(ss && ss.state && ss.state.phoneActive);
+    }
+
+    // Draws the badge as the last child of host, or takes it away when nothing waits. Writes only what changed.
+    function placeBadge(doc, host, badge, css) {
+        var el = firstChildWithClass(host, BADGE_CLASS);
+
+        if (!badge.waiting) {
+            if (el) host.removeChild(el);
+
+            return;
+        }
+
+        addBadgeStyle(doc, css);
+
+        if (!el) {
+            el = host.appendChild(doc.createElement('span'));
+            el.classList.add(BADGE_CLASS);
+        }
+
+        var label = badgeLabel(badge);
+
+        setClass(el, TIMED_CLASS, badge.timed);
+
+        if (el.textContent !== label) el.textContent = label;
+    }
+
+    function addBadgeStyle(doc, css) {
+        if (doc.getElementById(BADGE_STYLE_ID)) return;
+
+        var style = doc.createElement('style');
+        style.id = BADGE_STYLE_ID;
+        style.textContent = css;
+
+        (doc.head || doc.documentElement).appendChild(style);
     }
 
     // Returns '' once hooked, or why this page is not the one the script was written against.
@@ -516,6 +659,21 @@
         return true;
     }
 
+    function setClass(el, name, isOn) {
+        if (el.classList.contains(name) === isOn) return;
+
+        if (isOn) el.classList.add(name);
+        else el.classList.remove(name);
+    }
+
+    // An empty value removes the inline property, leaving the page's stylesheet in charge again.
+    function setStyle(el, name, value) {
+        if (el.style.getPropertyValue(name) === value) return;
+
+        if (value) el.style.setProperty(name, value);
+        else el.style.removeProperty(name);
+    }
+
     function childrenWithClass(parent, className) {
         var found = [];
 
@@ -539,8 +697,8 @@
     // apply is the plugin's way in. rules are the parts that decide what the list does, kept here for the tests; the
     // page never calls them.
     window.__sleventlist = {
-        version: '0.2.0',
+        version: '0.3.0',
         apply: apply,
-        rules: { readSettings: readSettings, tierOf: tierOf, rankByTimeLeft: rankByTimeLeft, crisisIds: crisisIds, routeClicks: routeClicks }
+        rules: { readSettings: readSettings, tierOf: tierOf, rankByTimeLeft: rankByTimeLeft, crisisIds: crisisIds, routeClicks: routeClicks, readBadge: readBadge, badgeLabel: badgeLabel }
     };
 })();
