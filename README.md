@@ -1,81 +1,101 @@
-> **AI-written from operator direction.** The intent is the operator's; the wording and scope are an agent's.
-> `session: 127889d4-f8d8-4d17-8ded-f6f46da456fc | 2026-10-12 | source: op:2026-10-11-2311-27f1`
-
 # Event List
 
-A BepInEx 6 (IL2CPP) plugin for Survival Log that holds the events list on the left of the HUD to a fixed height. A longer list scrolls inside that height instead of growing down the screen, and important events are kept at the top of it.
+Keeps the events list on the HUD to a fixed height, scrollable, with the important events on top.
 
-## What it does
+In Survival Log the events list on the left of the screen grows down the screen as events pile up, and during a rescue, siege or emergency the game cuts it to four rows and a "...N more" line. Event List holds the list to a fixed height, lets the rest scroll, and moves emergencies and running countdowns to the top so they are never hidden.
 
-- **Fixed height.** The list stops at `MaxHeight` (136 page pixels by default: both group headers and four rows). The rest scrolls with the mouse wheel over the list, using the game's own thin scrollbar and the game's own wheel handling.
-- **Every event stays in the list.** While a rescue, siege or emergency panel shows, the game cuts the list to four rows and a "...N more" line. With this mod every event sits in the scroll box, so an important one is never hidden behind "N more".
-- **Clicks land where they did.** A list that fits keeps the game's per-row click areas. A list that overflows takes clicks and the wheel as one box, the way the game's own scroll mode does, so a row scrolled out of sight never catches a click meant for the world. Clicks beside or below the list reach the game as before.
-- **Important events on top**, defined below. The order changes on screen only (CSS `order`); the game's list and its data are never reordered. When an event becomes important the list scrolls back to the top so you see it. If the pointer is over the list at that moment, the scroll waits until the pointer leaves, so a list you are reading or scrolling never jumps.
-- **Pure UI.** The plugin runs a script in the HUD page and reads its answer; it never reads or writes the game's state. The script touches the HUD page's DOM, one stylesheet, and the list's own hover flag (see Known limits).
-- **Survives reloads.** The plugin asks the HUD page every two seconds whether the script is there and sends it again after a page reload or scene change. If a game update changes the HUD so the script no longer recognises it, the list is left exactly as the game draws it and the log says why in one line.
+## Features
 
-## What counts as important
+- **Fixed height**: the list stops at a set height (136 page pixels by default, room for both group headers and four rows). The rest scrolls with the mouse wheel over the list, using the game's own thin scrollbar.
+- **Every event stays in the list**: the game's "...N more" cut never shows. Every event sits in the scroll box, so an important one is never hidden.
+- **Emergencies on top**: an event the game shows as one of its red emergency entries, or the zombie wave while it is spawning or charging, moves to the top of the list.
+- **Countdowns next**: an event with a running countdown moves up too, below the emergencies.
+- **Soonest countdown first**: among the countdowns, the one with the least time left comes first.
+- **Back to the top when it matters**: when an event becomes important the list scrolls back to the top so you see it. If the pointer is over the list at that moment, the scroll waits until the pointer leaves, so a list you are reading never jumps.
+- **Clicks land where they did**: a list that fits keeps the game's click areas on each row. A list that overflows takes clicks and the wheel as one box, so a row scrolled out of sight never catches a click meant for the world. Clicks beside or below the list reach the game as before.
+- **Survives reloads**: the HUD can reload after a scene change; the mod notices within a couple of seconds and sets the list up again.
+- **Steps aside after a game update**: if the HUD changes so the mod no longer recognises it, the list is left exactly as the game draws it and the log says why in one line.
+- **Log file**: the mod writes what it did at startup and what the HUD answered to `BepInEx\event-list.log`.
 
-This is the user's definition (see Provenance): they asked for important events to move to the top of the list, and confirmed that an event with a countdown is important. Emergencies rank above countdowns. Importance comes from the game's own data for each event, never from its text. Two tiers, highest first:
+Event List only changes how the list is drawn on screen. It never reads or writes the game's state, adds nothing to your save and does not edit game files. The game's own list and its data are never reordered; the order changes on screen only. You can remove it at any time; the list goes back to the game's own on the next start.
 
-1. **Emergency.** The event's id is one of the game's emergency chips (`eventStates`) while those chips are showing (`eventStatesActive`), or it is the zombie wave's event (`towerWaveEventId`) while the wave is spawning or charging (`towerWaveState` 1 or 2).
-2. **Countdown.** The event shows a running countdown (`timeActive` with `remainSeconds` above 0). `CountdownOnTop = false` drops this tier, so only emergencies move.
+Importance comes from the game's own data for each event, never from its text, so it works in any game language.
 
-Everything else keeps the game's order, and so do events within one tier. The game draws the list in groups with a header each; an important event moves to the top of its group, and a group holding an important event moves above the groups that hold none. Extra tracker rows are never moved.
+## How the list is ordered
 
-Each row's text is compared with its event's text only to prove the row on screen is the event the data describes. If they disagree (mid-update), nothing is moved until the next pass.
+Highest first:
 
-## Config
+1. **Emergency.** The event is one of the game's emergency entries while those are showing, or it is the zombie wave's event while the wave is spawning or charging.
+2. **Countdown.** The event shows a running countdown with time left. With `CountdownSoonestFirst` on (the default), the countdown with the least time left comes first. Times are compared in whole seconds, so countdowns in the same second keep the game's order. A countdown whose time left cannot be read goes after the rest of its tier, in the game's order.
+3. **Everything else**, in the game's order.
 
-`BepInEx/config/com.dev.survivallog.eventlist.cfg`:
+Emergencies keep the game's order among themselves. Extra tracker rows under an event are never moved.
 
-| Setting | Default | What it does |
-| --- | --- | --- |
-| `EventList/Enabled` | `true` | `false` turns the mod off: the list is left exactly as the game draws it. |
-| `EventList/MaxHeight` | `136` | Tallest the list grows, in the page's pixels. `0` means the default. Held between 60 and 600; the game's own scroll box stops at 220. |
-| `EventList/ImportantOnTop` | `true` | `false` keeps the game's order. The list still has its fixed height. |
-| `EventList/CountdownOnTop` | `true` | `false`: only emergencies move; countdown events keep the game's order. Does nothing while `ImportantOnTop` is `false`. |
+The game draws the list in groups (main and normal events), each with a header. An important event moves to the top of its group, and a group holding an important event moves above the groups that hold none. Two groups whose most important event is a countdown are ordered by their soonest countdown, so with `CountdownSoonestFirst` on, the normal group can sit above the main group when its countdown runs out sooner.
 
-Settings are read when the game starts.
+The order is worked out again each time the game sends the list a new set of events, and every two seconds as a backstop. Countdowns tick down at the same rate, so they do not pass each other in between.
 
-Log: `BepInEx/event-list.log`.
+## Known issues and limits
 
-## Known limits
-
-- The rescue, warehouse rescue and zombie siege boxes are separate panels with no event id, so they cannot be matched to a row in the list. They stay where the game puts them; a list row counts as an emergency only through the emergency chips or the zombie wave.
-- The game's code sends an emergency event both to the emergency chips and to this list, under the same event id, while the event is running its task. That is read from the game's code and not yet seen in game. List rows carry no urgency mark of their own, only the game's main or normal group, so the chips and the zombie wave are the only ways a row is known to be an emergency.
-- The game's "...N more" line never shows; every event is in the scroll box instead. To do that the script holds the list's hover flag on. As far as the HUD page's code shows, the game uses that flag only for how the list itself is drawn.
-- The default height is worked out from the game's CSS (two group headers and four rows), not measured in game. If four rows do not fit exactly, change `MaxHeight`.
-- The script follows the pointer from the moment it is installed. If the pointer already sits on the list then, the first scroll to the top is not held back.
+- The soonest-first order of countdowns is new in 0.2.0 and has not been run in the game yet. If countdowns come out in an odd order, please tell me (see [Feedback](#feedback-and-bug-reports)).
+- The rescue, warehouse rescue and zombie siege boxes are separate panels with no event behind them, so they stay where the game puts them. A list row counts as an emergency only through the game's emergency entries or the zombie wave.
+- That an emergency event shows both as an emergency entry and as a row in this list, under the same event, is read from the game's code and has not been seen in game yet.
+- The game's "...N more" line never shows. To keep every event in the scroll box, the mod holds the list's own hover flag on. As far as the HUD's code shows, the game uses that flag only for how the list is drawn.
+- The default height is worked out from the game's styles, not measured in game. If four rows do not fit exactly, change `MaxHeight`.
+- The mod follows the pointer from the moment it sets the list up. If the pointer already sits on the list then, the first scroll to the top is not held back.
 - How far one wheel notch scrolls is the game's own step.
+- Past 64 countdowns in one group, the extra ones sit after the others in the game's order.
+- `BepInEx\event-list.log` is appended to on every start and never trimmed. Delete it whenever you like.
+- If anything about the list looks wrong, please tell me (see [Feedback](#feedback-and-bug-reports)).
+
+## Requirements
+
+- Survival Log 1.1.18317. Built and tested on this version; a game update can break it until the mod is updated.
+- The [BepInEx Pack for Survival Log](https://www.nexusmods.com/survivallog/mods/12), the BepInEx 6 (IL2CPP) build for the game.
 
 ## Install
 
-Copy `EventList.dll` into `BepInEx/plugins`. Needs BepInEx 6 (IL2CPP build).
+1. Install the [BepInEx Pack for Survival Log](https://www.nexusmods.com/survivallog/mods/12) (if no other mods were installed before, start the game once so BepInEx finishes setup, then quit).
+2. Download `EventList.dll` from the [latest release](https://github.com/AnExiledDev/SurvivalLog-EventList/releases/latest) and put it in the `BepInEx\plugins` folder inside the game folder (the folder with the game .exe). Full path example: `C:\Program Files (x86)\Steam\steamapps\common\Survival Log\BepInEx\plugins\EventList.dll`
 
-## Build and test
+## Uninstall
 
-```sh
-dotnet build src/EventList -c Release -p:GameDir="D:\path\to\Survival Log"
+Delete `EventList.dll` from the `BepInEx\plugins` folder. For a clean slate, also delete `BepInEx\config\com.dev.survivallog.eventlist.cfg` and `BepInEx\event-list.log`.
+
+## Configuration
+
+Settings live in `BepInEx\config\com.dev.survivallog.eventlist.cfg`, created the first time the game starts with the mod. Edit it while the game is closed; changes apply at the next game start. See [CONFIG.md](CONFIG.md) for every setting.
+
+## Troubleshooting
+
+Tested on Survival Log 1.1.18317 with BepInEx `6.0.0-be.788`.
+
+Check `BepInEx\LogOutput.log` for `===== Event List 0.2.0 started`. With the default settings the full line reads `===== Event List 0.2.0 started: list at most 136px tall, emergencies then countdowns on top, countdowns soonest first`. With `Enabled` set to `false` it ends `off, EventList/Enabled is false; the list is left as the game draws it`.
+
+Once a game has loaded, look for `page script sent to CoreUI1 (install 1): the events list is held to its height`. If instead a line says `CoreUI1 is not the page this mod was written for`, a game update has changed the HUD and the list is left as the game draws it until the mod is updated.
+
+The same lines are in `BepInEx\event-list.log`, with a timestamp each, and that file is kept across restarts.
+
+## Feedback and bug reports
+
+Found a bug, have an idea, or something feels off? Come say so on the Core Directive Discord: https://discord.gg/trTsyxUFqg . You can also leave a comment on the Nexus page or [open an issue](https://github.com/AnExiledDev/SurvivalLog-EventList/issues). When reporting a bug, attach `BepInEx\LogOutput.log` and `BepInEx\event-list.log`.
+
+## Build
+
+This is a BepInEx 6 IL2CPP plugin. It compiles against BepInEx and the game's IL2CPP interop assemblies, so a game install with BepInEx set up and started once is required. Those assemblies come from the game and are not part of this repo. The .NET 8 SDK is required.
+
+```
+dotnet build src/EventList -c Release -p:GameDir="C:\path\to\Survival Log"
+```
+
+`GameDir` is the game folder. The default in the project file is a local path you will almost certainly need to override. The output DLL is at `src\EventList\bin\Release\EventList.dll`.
+
+The unit tests cover the pure logic, including the page script, which they run against a small stand-in for the HUD page. They need nothing from the game:
+
+```
 dotnet test tests/EventList.Tests
 ```
 
-The build references BepInEx and the game's interop assemblies under `GameDir`, so BepInEx must be installed and the game launched once. The tests compile only the pure `Core` code and run `eventlist.js` in Jint against a small fake of the HUD page, so they need nothing from the game.
-
 ## License
 
-MIT, see [LICENSE](LICENSE).
-
-## Provenance
-
-Operator, 2026-10-11 (op:2026-10-11-2311-27f1):
-
-> it would be nice to have the events list fixed height but scrollable, that would be my ideal.
-
-From the same utterance:
-
-> Important events should auto move to the top of events scroll.
-
-Operator, 2026-10-12 (op:2026-10-12-0153-bbd7):
-
-> Events with a countdown are indeed important.
+MIT. Copyright (c) 2026 AnExiledDev. See [LICENSE](LICENSE).

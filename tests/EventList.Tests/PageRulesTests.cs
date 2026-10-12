@@ -102,31 +102,70 @@ public class PageRulesTests
         Assert.Equal(151.0, _script.Number($"{Rules}.readSettings({{maxHeight: 150.6}}).maxHeight"));
     }
 
-    /// <summary>Both orders are on unless the plugin says false; a value the plugin never sends does not switch one off.</summary>
+    /// <summary>Every order is on unless the plugin says false; a value the plugin never sends does not switch one off.</summary>
     [Theory]
-    [InlineData("null", true, true)]
-    [InlineData("{}", true, true)]
-    [InlineData("{importantOnTop: false}", false, true)]
-    [InlineData("{countdownOnTop: false}", true, false)]
-    [InlineData("{importantOnTop: 0, countdownOnTop: 'no'}", true, true)]
-    public void Only_an_explicit_false_turns_an_order_off(string settings, bool isImportantOnTop, bool isCountdownOnTop)
+    [InlineData("null", true, true, true)]
+    [InlineData("{}", true, true, true)]
+    [InlineData("{importantOnTop: false}", false, true, true)]
+    [InlineData("{countdownOnTop: false}", true, false, true)]
+    [InlineData("{soonestFirst: false}", true, true, false)]
+    [InlineData("{importantOnTop: 0, countdownOnTop: 'no', soonestFirst: null}", true, true, true)]
+    public void Only_an_explicit_false_turns_an_order_off(string settings, bool isImportantOnTop, bool isCountdownOnTop, bool isSoonestFirst)
     {
         Assert.Equal(isImportantOnTop, _script.Is($"{Rules}.readSettings({settings}).importantOnTop"));
         Assert.Equal(isCountdownOnTop, _script.Is($"{Rules}.readSettings({settings}).countdownOnTop"));
+        Assert.Equal(isSoonestFirst, _script.Is($"{Rules}.readSettings({settings}).soonestFirst"));
     }
 
     [Theory]
-    [InlineData(150, true, false)]
-    [InlineData(0, false, true)]
-    [InlineData(400, true, true)]
-    public void The_page_uses_the_settings_the_plugin_sends(int maxHeight, bool isImportantOnTop, bool isCountdownOnTop)
+    [InlineData(150, true, false, true)]
+    [InlineData(0, false, true, true)]
+    [InlineData(400, true, true, false)]
+    public void The_page_uses_the_settings_the_plugin_sends(int maxHeight, bool isImportantOnTop, bool isCountdownOnTop, bool isSoonestFirst)
     {
-        var settings = ListSettings.From(maxHeight, isImportantOnTop, isCountdownOnTop);
+        var settings = ListSettings.From(maxHeight, isImportantOnTop, isCountdownOnTop, isSoonestFirst);
         var read = $"{Rules}.readSettings({PageCalls.Settings(settings)})";
 
         Assert.Equal(settings.MaxHeight, _script.Number(read + ".maxHeight"));
         Assert.Equal(settings.IsImportantOnTop, _script.Is(read + ".importantOnTop"));
         Assert.Equal(settings.IsCountdownOnTop, _script.Is(read + ".countdownOnTop"));
+        Assert.Equal(settings.IsCountdownSoonestFirst, _script.Is(read + ".soonestFirst"));
+    }
+
+    /// <summary>Operator, 2026-10-12: "start working on changes to existing mods from STATUS.md items ... #9". The countdown about to run out comes first.</summary>
+    [Theory]
+    [InlineData("[300, 45, 120]", "2,0,1")]
+    [InlineData("[45, 120, 300]", "0,1,2")]
+    [InlineData("[1.5, 0.25]", "1,0")]
+    [InlineData("[]", "")]
+    public void Countdowns_are_ranked_soonest_first(string timesLeft, string expectedRanks)
+    {
+        Assert.Equal(expectedRanks, RankByTimeLeft(timesLeft));
+    }
+
+    [Theory]
+    [InlineData("[60, 60, 60]", "0,1,2")]
+    [InlineData("[90, 60, 90, 60]", "2,0,3,1")]
+    public void Countdowns_with_the_same_time_left_keep_the_game_s_order(string timesLeft, string expectedRanks)
+    {
+        Assert.Equal(expectedRanks, RankByTimeLeft(timesLeft));
+    }
+
+    /// <summary>Countdowns inside the same whole second count as a tie, so two rows never swap over a fraction of a second or over float noise between the game's messages.</summary>
+    [Fact]
+    public void Countdowns_in_the_same_whole_second_keep_the_game_s_order()
+    {
+        Assert.Equal("0,1", RankByTimeLeft("[12.7, 12.2]"));
+    }
+
+    /// <summary>A time left that is not a finite number cannot be compared, so that countdown keeps its place among the unreadable ones, after the rest.</summary>
+    [Theory]
+    [InlineData("[undefined, 300, 45]", "2,1,0")]
+    [InlineData("[null, '30', 90, NaN, 1 / 0, {}]", "1,2,0,3,4,5")]
+    [InlineData("[undefined, null]", "0,1")]
+    public void Countdowns_whose_time_left_cannot_be_read_go_last_in_the_game_s_order(string timesLeft, string expectedRanks)
+    {
+        Assert.Equal(expectedRanks, RankByTimeLeft(timesLeft));
     }
 
     /// <summary>The page's click-through does not clip to scroll boxes, so rows scrolled out of sight must give up their clicks.</summary>
@@ -178,6 +217,8 @@ public class PageRulesTests
 
     private string TierOf(string item, string crisis, bool isCountdownImportant) =>
         _script.Text($"{Rules}.tierOf({item}, {crisis}, {Js(isCountdownImportant)})");
+
+    private string RankByTimeLeft(string timesLeft) => _script.Text($"{Rules}.rankByTimeLeft({timesLeft}).join(',')");
 
     private string CrisisIds(string state) => _script.Text($"Object.keys({Rules}.crisisIds({state})).join(',')");
 

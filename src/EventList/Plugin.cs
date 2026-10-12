@@ -10,7 +10,7 @@ namespace EventList;
 public sealed class Plugin : BasePlugin
 {
     private const string Guid = "com.dev.survivallog.eventlist";
-    private const string Version = "0.1.0";
+    private const string Version = "0.2.0";
 
     public override void Load()
     {
@@ -22,8 +22,10 @@ public sealed class Plugin : BasePlugin
             "Move important events to the top of the list: an event the game shows as an emergency or a zombie wave first, then events with a running countdown (see CountdownOnTop). Off: the game's order.").Value;
         var isCountdownOnTop = Config.Bind("EventList", "CountdownOnTop", true,
             "Count an event with a running countdown as important, so it moves to the top, below emergencies. Off: only emergencies move. Does nothing while ImportantOnTop is off.").Value;
+        var isCountdownSoonestFirst = Config.Bind("EventList", "CountdownSoonestFirst", true,
+            "Order the countdowns on top by time left, the one about to run out first. Countdowns with the same time left, and any whose time cannot be read, keep the game's order, the unreadable ones last. Off: countdowns keep the game's order among themselves. Does nothing while CountdownOnTop or ImportantOnTop is off.").Value;
         var log = new ListLog(Log, Path.Combine(Paths.BepInExRootPath, "event-list.log"));
-        var settings = ListSettings.From(maxHeight, isImportantOnTop, isCountdownOnTop);
+        var settings = ListSettings.From(maxHeight, isImportantOnTop, isCountdownOnTop, isCountdownSoonestFirst);
 
         if (!isEnabled)
         {
