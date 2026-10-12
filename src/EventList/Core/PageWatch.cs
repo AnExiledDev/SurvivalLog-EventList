@@ -89,7 +89,7 @@ public sealed class PageWatch
     /// <summary>An answer the script gave means it is in the page, even when it found the page unfit and changed nothing.</summary>
     private string? SettleInstall(string answer, double now)
     {
-        var isInstalled = answer == PageAnswer.Ok || answer.StartsWith(PageAnswer.UnsupportedPrefix, StringComparison.Ordinal);
+        var isInstalled = answer == PageAnswer.Ok || answer.StartsWith(PageAnswer.OkWithNotePrefix, StringComparison.Ordinal) || answer.StartsWith(PageAnswer.UnsupportedPrefix, StringComparison.Ordinal);
         _installs++;
         _isInstallWanted = !isInstalled;
 
@@ -116,7 +116,8 @@ public sealed class PageWatch
         PageAnswer.NoWebView => "the game's web UI is not up yet",
         PageAnswer.NoAnswer => $"the web UI did not answer within {AnswerWaitSeconds:0}s",
         PageAnswer.InstallLeftNothing => "the page script ran but left nothing behind",
-        _ when answer.StartsWith(PageAnswer.RunFailedPrefix, StringComparison.Ordinal) => "could not run script in the web UI: " + answer.Substring(PageAnswer.RunFailedPrefix.Length),
+        _ when answer.StartsWith(PageAnswer.OkWithNotePrefix, StringComparison.Ordinal) => Describe(PageAnswer.Ok) + "; " + answer.Substring(PageAnswer.OkWithNotePrefix.Length),
+        _ when answer.StartsWith(PageAnswer.RunFailedPrefix, StringComparison.Ordinal) =>"could not run script in the web UI: " + answer.Substring(PageAnswer.RunFailedPrefix.Length),
         _ when answer.StartsWith(PageAnswer.UnsupportedPrefix, StringComparison.Ordinal) => $"CoreUI1 is not the page this mod was written for, so the list is left as the game draws it ({answer})",
         _ => "the page answered: " + answer
     };

@@ -29,6 +29,10 @@ internal sealed class PageScript
     /// <summary>What the plugin's check call does once it has found the frame.</summary>
     public string Apply(string settings) => Text($"window.__sleventlist.apply({settings})");
 
+    /// <summary>The check call with the event badge, and the phone's document (a JavaScript expression, or "null").</summary>
+    public string Apply(string settings, string badge, string phoneDocument) =>
+        Text($"window.__sleventlist.apply({settings}, {badge}, {phoneDocument})");
+
     public void Run(string statements) => _engine.Execute(statements);
 
     public string Text(string expression) => _engine.Evaluate($"String({expression})").AsString();

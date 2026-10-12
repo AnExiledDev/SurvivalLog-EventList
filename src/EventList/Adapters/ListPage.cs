@@ -6,9 +6,10 @@ using GameCore.HotUpdate.ReduxUI;
 namespace EventList.Adapters;
 
 /// <summary>
-/// The plugin's only contact with the game: it runs JavaScript in the game's web view and reads the answer.
-/// Nothing in the game's state is read or written. All members run on Unity's main thread; the web view's
-/// callback only stores the answer, and the next frame hands it to <see cref="PageWatch"/>.
+/// The plugin's contact with the game's web view: it runs JavaScript there and reads the answer. Each call carries
+/// the event badge as it is at that moment, read through the badge source; nothing in the game's state is written.
+/// All members run on Unity's main thread; the web view's callback only stores the answer, and the next frame hands
+/// it to <see cref="PageWatch"/>.
 /// </summary>
 internal sealed class ListPage
 {
@@ -17,15 +18,15 @@ internal sealed class ListPage
     private readonly PageWatch _watch = new();
     private readonly ReplySlot _replies = new();
     private readonly ListSettings _settings;
+    private readonly Func<PhoneBadge> _readBadge;
     private readonly Action<string> _log;
-    private readonly string _check;
-    private string? _install;
+    private string? _script;
 
-    public ListPage(ListSettings settings, Action<string> log)
+    public ListPage(ListSettings settings, Func<PhoneBadge> readBadge, Action<string> log)
     {
         _settings = settings;
+        _readBadge = readBadge;
         _log = log;
-        _check = PageCalls.Check(settings);
     }
 
     public void Tick(double now)
@@ -36,7 +37,8 @@ internal sealed class ListPage
 
         if (turn.Send == PageSend.Nothing) return;
 
-        var javaScript = turn.Send == PageSend.Install ? Install() : _check;
+        var badge = _readBadge();
+        var javaScript = turn.Send == PageSend.Install ? PageCalls.Install(Script(), _settings, badge) : PageCalls.Check(_settings, badge);
 
         if (Run(javaScript, now) is { } line) _log(line);
     }
@@ -62,14 +64,14 @@ internal sealed class ListPage
         }
     }
 
-    /// <summary>Built on first need: most launches send it once, and some never reach a page that wants it.</summary>
-    private string Install()
+    /// <summary>Read on first need: most launches send it once, and some never reach a page that wants it.</summary>
+    private string Script()
     {
-        if (_install != null) return _install;
+        if (_script != null) return _script;
 
         using var stream = typeof(ListPage).Assembly.GetManifestResourceStream(ScriptResource) ?? throw new InvalidOperationException(ScriptResource + " is not embedded");
         using var reader = new StreamReader(stream);
 
-        return _install = PageCalls.Install(reader.ReadToEnd(), _settings);
+        return _script = reader.ReadToEnd();
     }
 }
