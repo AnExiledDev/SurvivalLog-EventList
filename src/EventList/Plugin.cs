@@ -20,7 +20,7 @@ public sealed class Plugin : BasePlugin
             "把屏幕左侧的事件列表固定在一定高度，其余内容滚动查看。关闭后本模组不做任何改动：列表保持游戏原样，手机上也没有事件角标。").Value;
         var maxHeight = Config.Bind("EventList", "MaxHeight", ListSettings.DefaultMaxHeight,
             $"Tallest the events list may grow, in HUD pixels, before the rest scrolls. From {ListSettings.LowestMaxHeight} to {ListSettings.HighestMaxHeight}; 0 or less uses the default, {ListSettings.DefaultMaxHeight}, which fits both group headers and four rows.\n" +
-            $"事件列表最多能长到多高（界面像素），超出部分滚动查看。范围 {ListSettings.LowestMaxHeight} 到 {ListSettings.HighestMaxHeight}；填 0 或更小则使用默认值 {ListSettings.DefaultMaxHeight}，正好放下“主线”“事件”两个分组标题和四行。").Value;
+            $"事件列表最多能长到多高（界面像素），超出部分滚动查看。范围 {ListSettings.LowestMaxHeight} 到 {ListSettings.HighestMaxHeight}；填 0 或更小则使用默认值 {ListSettings.DefaultMaxHeight}，正好放下「主线」「事件」两个分组标题和四行。").Value;
         var isImportantOnTop = Config.Bind("EventList", "ImportantOnTop", true,
             "Move important events to the top of the list: emergencies and the zombie wave first, then events with a running countdown. Off: the list keeps the game's order.\n" +
             "把重要事件移到列表顶部：危机和尸潮排在最前，其次是正在倒计时的事件。关闭后列表保持游戏原有顺序。").Value;
@@ -32,7 +32,7 @@ public sealed class Plugin : BasePlugin
             "顶部的倒计时事件按剩余时间排序，最快结束的排在最前；关闭后保持游戏原有顺序。仅在 ImportantOnTop 和 CountdownOnTop 都开启时生效。").Value;
         var isPhoneBadgeOn = Config.Bind("EventList", "PhoneEventBadge", true,
             "Show a second badge on the phone button and on the messages app, counting event texts you have not accepted yet; it turns orange with an hourglass when one of them has a countdown. Works only while Enabled is on.\n" +
-            "在手机按钮和手机里的“短信”上多显示一个角标，统计还没接取的事件短信；其中有带倒计时的事件时，角标变成橙色并显示沙漏。仅在 Enabled 开启时生效。").Value;
+            "在手机按钮和手机里的「短信」上多显示一个角标，统计还没接取的事件短信；其中有带倒计时的事件时，角标变成橙色并显示沙漏。仅在 Enabled 开启时生效。").Value;
         var log = new ListLog(Log, Path.Combine(Paths.BepInExRootPath, "event-list.log"));
         var settings = ListSettings.From(maxHeight, isImportantOnTop, isCountdownOnTop, isCountdownSoonestFirst);
 
