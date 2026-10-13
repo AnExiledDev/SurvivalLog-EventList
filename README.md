@@ -6,7 +6,7 @@ In Survival Log the events list on the left of the screen grows down the screen 
 
 ## Features
 
-- **Fixed height**: the list stops at a set height (136 page pixels by default, room for both group headers and four rows). The rest scrolls with the mouse wheel over the list, using the game's own thin scrollbar.
+- **Fixed height**: the list stops at a set height (136 HUD pixels by default, room for both group headers and four rows). The rest scrolls with the mouse wheel over the list, using the game's own thin scrollbar.
 - **Every event stays in the list**: the game's "...N more" cut never shows. Every event sits in the scroll box, so an important one is never hidden.
 - **Emergencies on top**: an event the game shows as one of its red emergency entries, or the zombie wave while it is spawning or charging, moves to the top of the list.
 - **Countdowns next**: an event with a running countdown moves up too, below the emergencies.
@@ -38,8 +38,8 @@ The order is worked out again each time the game sends the list a new set of eve
 
 ## Known issues and limits
 
-- The soonest-first order of countdowns is new in 0.2.0 and has not been run in the game yet. If countdowns come out in an odd order, please tell me (see [Feedback](#feedback-and-bug-reports)).
-- The event badge on the phone is new in 0.3.0 and has not been seen in the game yet. If it sits in the wrong spot, shows the wrong count or does not show, please tell me (see [Feedback](#feedback-and-bug-reports)).
+- The soonest-first order of countdowns has not been run in the game yet. If countdowns come out in an odd order, please tell me (see [Feedback](#feedback-and-bug-reports)).
+- The event badge on the phone has not been seen in the game yet. If it sits in the wrong spot, shows the wrong count or does not show, please tell me (see [Feedback](#feedback-and-bug-reports)).
 - The event badge is checked every two seconds, so a new event text can take that long to show on it.
 - The event badge counts the same conversations as the game's own text badge: nothing while the phone is locked, and nothing from a contact who died or went missing.
 - The rescue, warehouse rescue and zombie siege boxes are separate panels with no event behind them, so they stay where the game puts them. A list row counts as an emergency only through the game's emergency entries or the zombie wave.
@@ -74,7 +74,7 @@ Settings live in `BepInEx\config\com.dev.survivallog.eventlist.cfg`, created the
 
 Tested on Survival Log 1.1.18317 with BepInEx `6.0.0-be.788`.
 
-Check `BepInEx\LogOutput.log` for `===== Event List 0.3.0 started`. With the default settings the full line reads `===== Event List 0.3.0 started: list at most 136px tall, emergencies then countdowns on top, countdowns soonest first, event badge on the phone`. With `PhoneEventBadge` set to `false` it ends `no event badge` instead. With `Enabled` set to `false` it ends `off, EventList/Enabled is false; the list is left as the game draws it`.
+Check `BepInEx\LogOutput.log` for `===== Event List 0.3.1 started`. With the default settings the full line reads `===== Event List 0.3.1 started: list at most 136px tall, emergencies then countdowns on top, countdowns soonest first, event badge on the phone`. With `PhoneEventBadge` set to `false` it ends `no event badge` instead. With `Enabled` set to `false` it ends `off, EventList/Enabled is false; the list is left as the game draws it`.
 
 Once a game has loaded, look for `page script sent to CoreUI1 (install 1): the events list is held to its height`. If instead a line says `CoreUI1 is not the page this mod was written for`, a game update has changed the HUD and the list is left as the game draws it until the mod is updated. A line ending `so the event badge is not shown there` means the mod could not find the phone button or the messages app to put the badge on.
 
@@ -86,6 +86,7 @@ Found a bug, have an idea, or something feels off? Come say so on the Core Direc
 
 ## Changelog
 
+- **0.3.1**: Plainer setting descriptions in the config file, each now also in Simplified Chinese. No setting or default changed.
 - **0.3.0**: A second badge on the phone counts the event texts waiting for you to accept them, so they are not missed. It turns orange with an hourglass when one of them has a countdown. Turn it off with `PhoneEventBadge`.
 - **0.2.0**: Countdowns on top are ordered by time left, the one about to run out first.
 - **0.1.0**: First version.
