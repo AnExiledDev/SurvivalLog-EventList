@@ -707,7 +707,7 @@
     // apply is the plugin's way in. rules are the parts that decide what the list does, kept here for the tests; the
     // page never calls them.
     window.__sleventlist = {
-        version: '0.3.0',
+        version: '0.3.1',
         apply: apply,
         rules: { readSettings: readSettings, tierOf: tierOf, rankByTimeLeft: rankByTimeLeft, crisisIds: crisisIds, routeClicks: routeClicks, readBadge: readBadge, badgeLabel: badgeLabel }
     };

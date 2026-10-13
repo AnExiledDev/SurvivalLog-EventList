@@ -6,12 +6,12 @@ Settings live in `BepInEx\config\com.dev.survivallog.eventlist.cfg`, created the
 
 | Setting | Default | What it does |
 | --- | --- | --- |
-| `Enabled` | `true` | `false` turns the mod off: the list is left exactly as the game draws it, and the phone gets no event badge. |
-| `MaxHeight` | `136` | Tallest the list may grow, in the page's pixels. Anything past it scrolls. |
-| `ImportantOnTop` | `true` | Moves important events to the top of the list: emergencies first, then running countdowns. `false` keeps the game's order; the list still has its fixed height. |
-| `CountdownOnTop` | `true` | Counts an event with a running countdown as important, so it moves up below the emergencies. `false`: only emergencies move. Does nothing while `ImportantOnTop` is `false`. |
-| `CountdownSoonestFirst` | `true` | Orders the countdowns on top by time left, the one about to run out first. `false`: countdowns keep the game's order among themselves. Does nothing while `CountdownOnTop` or `ImportantOnTop` is `false`. |
-| `PhoneEventBadge` | `true` | Shows a second badge on the phone button on the HUD, and on the messages app inside the phone, counting the event texts still waiting to be accepted. It turns orange with an hourglass when one of them has a countdown. The game's own red text badge is left as it is. `false`: no event badge. Does nothing while `Enabled` is `false`. |
+| `Enabled` | `true` | Keeps the events list on the left of the screen at a fixed height and scrolls the rest. `false` turns the mod off: the list stays as the game draws it, and the phone gets no event badge. |
+| `MaxHeight` | `136` | Tallest the list may grow, in HUD pixels, before the rest scrolls. From 60 to 600. |
+| `ImportantOnTop` | `true` | Moves important events to the top of the list: emergencies and the zombie wave first, then events with a running countdown. `false` keeps the game's order; the list still has its fixed height. |
+| `CountdownOnTop` | `true` | Counts events with a running countdown as important, so they move up just below emergencies. `false`: only emergencies move up. Works only while `ImportantOnTop` is `true`. |
+| `CountdownSoonestFirst` | `true` | Sorts the countdowns at the top by time left, the one about to run out first. `false`: they keep the game's order. Works only while `ImportantOnTop` and `CountdownOnTop` are both `true`. |
+| `PhoneEventBadge` | `true` | Shows a second badge on the phone button and on the messages app, counting the event texts you have not accepted yet. It turns orange with an hourglass when one of them has a countdown. The game's own red badge stays as it is. `false`: no event badge. Works only while `Enabled` is `true`. |
 
 `MaxHeight` is held between 60 and 600. A value below 60 is raised to 60 and a value above 600 is lowered to 600. `0` or a negative number means the default, 136, which is room for both group headers and four rows. For comparison, the game's own scroll box, when it uses one, stops at 220.
 

@@ -19,7 +19,7 @@ Event List only changes what is drawn on screen. It reads the texts in your phon
 Works in any game language.
 
 [size=5]Known issues[/size]
-The event badge on the phone is new in 0.3.0 and has not been seen in the game yet. It is checked every two seconds, so a new event text can take that long to show on it, and like the game's own badge it counts nothing while the phone is locked. Turn off PhoneEventBadge in the config if you do not want it. The soonest-first order of countdowns is new in 0.2.0 and has not been tried in the game yet. With it on, a whole group can move: the normal events can sit above the main events when their countdown runs out sooner. Turn off CountdownSoonestFirst in the config if you prefer the game's order. The rescue and siege boxes are separate panels and stay where the game puts them. If you run into anything strange, please tell me (see Feedback below).
+The event badge on the phone has not been seen in the game yet. It is checked every two seconds, so a new event text can take that long to show on it, and like the game's own badge it counts nothing while the phone is locked. Turn off PhoneEventBadge in the config if you do not want it. The soonest-first order of countdowns has not been tried in the game yet. With it on, a whole group can move: the normal events can sit above the main events when their countdown runs out sooner. Turn off CountdownSoonestFirst in the config if you prefer the game's order. The rescue and siege boxes are separate panels and stay where the game puts them. If you run into anything strange, please tell me (see Feedback below).
 
 [size=5]Requirements[/size]
 [list]
