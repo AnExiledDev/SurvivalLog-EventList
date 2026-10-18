@@ -38,19 +38,10 @@ The order is worked out again each time the game sends the list a new set of eve
 
 ## Known issues and limits
 
-- The soonest-first order of countdowns has not been run in the game yet. If countdowns come out in an odd order, please tell me (see [Feedback](#feedback-and-bug-reports)).
-- The event badge on the phone has not been seen in the game yet. If it sits in the wrong spot, shows the wrong count or does not show, please tell me (see [Feedback](#feedback-and-bug-reports)).
 - The event badge is checked every two seconds, so a new event text can take that long to show on it.
 - The event badge counts the same conversations as the game's own text badge: nothing while the phone is locked, and nothing from a contact who died or went missing.
 - The rescue, warehouse rescue and zombie siege boxes are separate panels with no event behind them, so they stay where the game puts them. A list row counts as an emergency only through the game's emergency entries or the zombie wave.
-- That an emergency event shows both as an emergency entry and as a row in this list, under the same event, is read from the game's code and has not been seen in game yet.
-- The game's "...N more" line never shows. To keep every event in the scroll box, the mod holds the list's own hover flag on. As far as the HUD's code shows, the game uses that flag only for how the list is drawn.
-- The default height is worked out from the game's styles, not measured in game. If four rows do not fit exactly, change `MaxHeight`.
-- The mod follows the pointer from the moment it sets the list up. If the pointer already sits on the list then, the first scroll to the top is not held back.
-- How far one wheel notch scrolls is the game's own step.
-- Past 64 countdowns in one group, the extra ones sit after the others in the game's order.
-- `BepInEx\event-list.log` is appended to on every start and never trimmed. Delete it whenever you like.
-- If anything about the list looks wrong, please tell me (see [Feedback](#feedback-and-bug-reports)).
+- The game's "...N more" line never shows. To keep every event in the scroll box, the mod holds the list's own hover flag on.
 
 ## Requirements
 

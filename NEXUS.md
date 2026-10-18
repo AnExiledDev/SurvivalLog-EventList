@@ -19,7 +19,7 @@ Event List only changes what is drawn on screen. It reads the texts in your phon
 Works in any game language.
 
 [size=5]Known issues[/size]
-The event badge on the phone has not been seen in the game yet. It is checked every two seconds, so a new event text can take that long to show on it, and like the game's own badge it counts nothing while the phone is locked. Turn off PhoneEventBadge in the config if you do not want it. The soonest-first order of countdowns has not been tried in the game yet. With it on, a whole group can move: the normal events can sit above the main events when their countdown runs out sooner. Turn off CountdownSoonestFirst in the config if you prefer the game's order. The rescue and siege boxes are separate panels and stay where the game puts them. If you run into anything strange, please tell me (see Feedback below).
+The event badge on the phone is checked every two seconds, so a new event text can take that long to show on it, and like the game's own badge it counts nothing while the phone is locked. Turn off PhoneEventBadge in the config if you do not want it. With the soonest-first order of countdowns on, a whole group can move: the normal events can sit above the main events when their countdown runs out sooner. Turn off CountdownSoonestFirst in the config if you prefer the game's order. The rescue and siege boxes are separate panels and stay where the game puts them.
 
 [size=5]Requirements[/size]
 [list]
@@ -67,7 +67,7 @@ Event List 只改变屏幕上的显示。它读取手机里的短信来统计待
 适用于任何游戏语言。
 
 [size=5]已知问题[/size]
-手机上的事件角标还没有在游戏中实际见到过。它每两秒检查一次，所以新的事件短信可能要等这么久才会显示在角标上；和游戏自己的角标一样，手机锁定时它不计数。如果不想要它，请在配置中关闭 PhoneEventBadge。倒计时按最快结束排序的功能还没有在游戏中试过。开启时，整个分组可能会移动：当普通事件的倒计时先结束时，「事件」分组可能排到「主线」分组上方。如果你更喜欢游戏原有的顺序，请在配置中关闭 CountdownSoonestFirst。救援和围攻框是单独的面板，保持在游戏放置的位置。如果遇到任何奇怪的情况，请告诉我（见下方反馈）。
+手机上的事件角标每两秒检查一次，所以新的事件短信可能要等这么久才会显示在角标上；和游戏自己的角标一样，手机锁定时它不计数。如果不想要它，请在配置中关闭 PhoneEventBadge。开启倒计时按最快结束排序时，整个分组可能会移动：当普通事件的倒计时先结束时，「事件」分组可能排到「主线」分组上方。如果你更喜欢游戏原有的顺序，请在配置中关闭 CountdownSoonestFirst。救援和围攻框是单独的面板，保持在游戏放置的位置。
 
 [size=5]前置要求[/size]
 [list]
