@@ -1,12 +1,12 @@
 # Event List settings
 
-Settings live in `BepInEx\config\com.dev.survivallog.eventlist.cfg`, created the first time the game starts with the mod. Edit the file while the game is closed; changes apply at the next game start. Delete the file to get the defaults back.
+Settings live in `BepInEx\config\com.dev.survivallog.eventlist.cfg`, created the first time the game starts with the mod. Change them in game on the Mod Manager's Mods screen, or edit the file while the game is closed. Changed on the Mods screen, every setting takes effect at once except `Enabled`, which takes effect at the next game start. Delete the file to get the defaults back.
 
 ## EventList
 
 | Setting | Default | What it does |
 | --- | --- | --- |
-| `Enabled` | `true` | Keeps the events list on the left of the screen at a fixed height and scrolls the rest. `false` turns the mod off: the list stays as the game draws it, and the phone gets no event badge. |
+| `Enabled` | `true` | Keeps the events list on the left of the screen at a fixed height and scrolls the rest. `false` turns the mod off: the list stays as the game draws it, and the phone gets no event badge. Takes effect at the next game start. |
 | `MaxHeight` | `136` | Tallest the list may grow, in HUD pixels, before the rest scrolls. From 60 to 600. |
 | `ImportantOnTop` | `true` | Moves important events to the top of the list: emergencies and the zombie wave first, then events with a running countdown. `false` keeps the game's order; the list still has its fixed height. |
 | `CountdownOnTop` | `true` | Counts events with a running countdown as important, so they move up just below emergencies. `false`: only emergencies move up. Works only while `ImportantOnTop` is `true`. |

@@ -47,12 +47,14 @@ The order is worked out again each time the game sends the list a new set of eve
 
 - Survival Log 1.1.18902. Built and tested on this version; a game update can break it until the mod is updated.
 - The [BepInEx Pack for Survival Log](https://www.nexusmods.com/survivallog/mods/12), the BepInEx 6 (IL2CPP) build for the game.
+- [Exiled's Toolkit](https://github.com/AnExiledDev/SurvivalLog-ExiledToolkit) 0.4.0 or newer, which applies changed settings at once. Event List does not load without it.
 
 ## Install
 
 1. Install the [BepInEx Pack for Survival Log](https://www.nexusmods.com/survivallog/mods/12) (if no other mods were installed before, start the game once so BepInEx finishes setup, then quit).
-2. Download `EventList-x.y.z.zip` from the [latest release](https://github.com/AnExiledDev/SurvivalLog-EventList/releases/latest) or from Nexus Mods.
-3. Extract the zip into the game folder (the folder with `SurvivalLog.exe`). It holds a `BepInEx` folder, so the DLL lands in the right place. When asked, merge the folders. The result should be:
+2. Install Exiled's Toolkit: download `ExiledToolkit-x.y.z.zip` from [its latest release](https://github.com/AnExiledDev/SurvivalLog-ExiledToolkit/releases/latest) or from Nexus Mods, and extract it into the game folder (the folder with `SurvivalLog.exe`).
+3. Download `EventList-x.y.z.zip` from the [latest release](https://github.com/AnExiledDev/SurvivalLog-EventList/releases/latest) or from Nexus Mods.
+4. Extract the zip into the game folder (the folder with `SurvivalLog.exe`). It holds a `BepInEx` folder, so the DLL lands in the right place. When asked, merge the folders. The result should be:
    `C:\Program Files (x86)\Steam\steamapps\common\Survival Log\BepInEx\plugins\EventList.dll`
 
 ## Uninstall
@@ -61,13 +63,13 @@ Delete `EventList.dll` from the `BepInEx\plugins` folder. For a clean slate, als
 
 ## Configuration
 
-Settings live in `BepInEx\config\com.dev.survivallog.eventlist.cfg`, created the first time the game starts with the mod. Edit it while the game is closed; changes apply at the next game start. Each setting in the cfg file is explained in English and Simplified Chinese. See [CONFIG.md](CONFIG.md) for every setting.
+Settings live in `BepInEx\config\com.dev.survivallog.eventlist.cfg`, created the first time the game starts with the mod. Change them in game on the Mod Manager's Mods screen, or edit the file while the game is closed. Changed on the Mods screen, every setting takes effect at once except `Enabled`, which takes effect at the next game start. Each setting in the cfg file is explained in English and Simplified Chinese. See [CONFIG.md](CONFIG.md) for every setting.
 
 ## Troubleshooting
 
 Tested on Survival Log 1.1.18902 with BepInEx `6.0.0-be.788`.
 
-Check `BepInEx\LogOutput.log` for `===== Event List 0.3.2 started`. With the default settings the full line reads `===== Event List 0.3.2 started: list at most 136px tall, emergencies then countdowns on top, countdowns soonest first, event badge on the phone`. With `PhoneEventBadge` set to `false` it ends `no event badge` instead. With `Enabled` set to `false` it ends `off, EventList/Enabled is false; the list is left as the game draws it`.
+Check `BepInEx\LogOutput.log` for `===== Event List 0.4.0 started`. With the default settings the line after it reads `list at most 136px tall, emergencies then countdowns on top, countdowns soonest first, event badge on the phone`, and it is written again when a setting changes on the Mods screen. With `PhoneEventBadge` set to `false` it ends `no event badge` instead. With `Enabled` set to `false` the start line ends `off, EventList/Enabled is false; the list is left as the game draws it`.
 
 Once a game has loaded, look for `page script sent to CoreUI1 (install 1): the events list is held to its height`. If instead a line says `CoreUI1 is not the page this mod was written for`, a game update has changed the HUD and the list is left as the game draws it until the mod is updated. A line ending `so the event badge is not shown there` means the mod could not find the phone button or the messages app to put the badge on.
 
@@ -79,6 +81,7 @@ Found a bug, have an idea, or something feels off? Come say so on the Core Direc
 
 ## Changelog
 
+- **0.4.0**: Settings can be changed on the Mod Manager's Mods screen without a restart, all but `Enabled`. Needs Exiled's Toolkit 0.4.0 or newer.
 - **0.3.1**: Plainer setting descriptions in the config file, each now also in Simplified Chinese. No setting or default changed.
 - **0.3.0**: A second badge on the phone counts the event texts waiting for you to accept them, so they are not missed. It turns orange with an hourglass when one of them has a countdown. Turn it off with `PhoneEventBadge`.
 - **0.2.0**: Countdowns on top are ordered by time left, the one about to run out first.

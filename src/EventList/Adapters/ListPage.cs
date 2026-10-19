@@ -17,8 +17,8 @@ internal sealed class ListPage
 
     private readonly PageWatch _watch = new();
     private readonly ReplySlot _replies = new();
-    private readonly ListSettings _settings;
-    private readonly Func<PhoneBadge> _readBadge;
+    private ListSettings _settings;
+    private Func<PhoneBadge> _readBadge;
     private readonly Action<string> _log;
     private string? _script;
 
@@ -27,6 +27,13 @@ internal sealed class ListPage
         _settings = settings;
         _readBadge = readBadge;
         _log = log;
+    }
+
+    /// <summary>Called on the main thread at start and after each change; the next call to the page carries them.</summary>
+    public void Use(ListSettings settings, Func<PhoneBadge> readBadge)
+    {
+        _settings = settings;
+        _readBadge = readBadge;
     }
 
     public void Tick(double now)
