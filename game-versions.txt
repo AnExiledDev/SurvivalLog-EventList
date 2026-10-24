@@ -1,3 +1,3 @@
 # Game versions each version of Event List is known to work on.
 # mod version = game versions, separated by commas
-0.4.0 = 1.1.18902, 1.1.19131
+0.4.0 = 1.1.18902, 1.1.19131, 1.1.19611
