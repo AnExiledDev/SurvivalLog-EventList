@@ -11,9 +11,11 @@ internal sealed class PageScript
 {
     private readonly Engine _engine = new();
 
-    private PageScript(string? pageSpec)
+    private PageScript(string? pageSpec, bool isInRoot = false)
     {
         _engine.Execute(Resource("EventList.Tests.FakePage.js"));
+
+        if (isInRoot) _engine.Execute(Resource("EventList.Tests.FrameFake.js"));
 
         if (pageSpec != null) _engine.Execute("var page = buildPage(" + pageSpec + ");");
 
@@ -25,6 +27,9 @@ internal sealed class PageScript
 
     /// <summary>The script in a page drawn from a buildPage spec; the page is the global <c>page</c>.</summary>
     public static PageScript On(string pageSpec) => new(pageSpec);
+
+    /// <summary>The same, with the page inside a Root.html whose frames the tests open and close (FrameFake.js).</summary>
+    public static PageScript InRoot(string pageSpec) => new(pageSpec, true);
 
     /// <summary>What the plugin's check call does once it has found the frame.</summary>
     public string Apply(string settings) => Text($"window.__sleventlist.apply({settings})");

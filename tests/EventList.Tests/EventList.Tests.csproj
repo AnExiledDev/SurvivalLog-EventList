@@ -17,6 +17,7 @@
   <ItemGroup>
     <EmbeddedResource Include="..\..\src\EventList\eventlist.js" LogicalName="EventList.eventlist.js" Link="eventlist.js" />
     <EmbeddedResource Include="FakePage.js" LogicalName="EventList.Tests.FakePage.js" />
+    <EmbeddedResource Include="FrameFake.js" LogicalName="EventList.Tests.FrameFake.js" />
   </ItemGroup>
 
   <ItemGroup>

@@ -66,6 +66,10 @@
     var HUD_ICONS = '.icon-sq > .icon-svg';
     var PHONE_APP = '.app-dock > .is-sms';
     var PHONE_DOCK = '.app-dock';
+    var PHONE_PAGE = /PhoneSMS\.html/i;
+    var CHASE_FRAMES = 120;
+    // The badge from the plugin's last call, drawn on a phone page the moment the game builds it.
+    var lastBadge = null;
 
     var HUD_BADGE_CSS = badgeCss({ edge: -4, height: 15, padding: 4, font: 9.5, border: '1px solid rgba(15, 15, 15, 0.8)' });
     var APP_BADGE_CSS = badgeCss({ edge: -5, height: 22, padding: 6, font: 12, border: '2px solid #2a221b' });
@@ -93,7 +97,9 @@
     // the badge working. A badge spot that should be on the page and is not is reported after the list's answer and
     // '; ', so a held list answers 'ok; ' and the note.
     function apply(next, nextBadge, phoneDocument) {
-        var badgeNote = showBadges(readBadge(nextBadge), phoneDocument);
+        lastBadge = readBadge(nextBadge);
+
+        var badgeNote = showBadges(lastBadge, phoneDocument);
 
         return withNote(applyList(next), badgeNote);
     }
@@ -196,6 +202,118 @@
         placeBadge(phoneDocument, app, badge, APP_BADGE_CSS);
 
         return true;
+    }
+
+    // The game builds a new phone page every time the phone opens and shows it two frames after the page starts, long
+    // before the plugin's next call. So Root.html's frames are watched from here: a phone page is found the moment its
+    // frame appears, and the last badge the plugin sent goes on the messages app while the game builds the page. The
+    // watchers are made once per page and call whatever this page's script is now, so a reloaded HUD never draws an
+    // old count.
+    function watchPhones() {
+        var root = rootDocument();
+
+        if (!root) return;
+
+        root.__sleventlistFrame = onFrame;
+        root.__sleventlistPhone = drawPhone;
+
+        var Observer = root.defaultView && root.defaultView.MutationObserver;
+
+        if (root.__sleventlistWatching || !Observer) return;
+
+        root.__sleventlistWatching = true;
+        new Observer(function (records) {
+            for (var i = 0; i < records.length; i++) {
+                var record = records[i];
+
+                if (record.type === 'attributes') {
+                    if (record.target.tagName === 'IFRAME') root.__sleventlistFrame(record.target);
+
+                    continue;
+                }
+
+                for (var j = 0; j < record.addedNodes.length; j++) {
+                    var node = record.addedNodes[j];
+
+                    if (node.nodeType !== 1) continue;
+
+                    if (node.tagName === 'IFRAME') {
+                        root.__sleventlistFrame(node);
+                        continue;
+                    }
+
+                    var inner = node.getElementsByTagName('iframe');
+
+                    for (var k = 0; k < inner.length; k++) root.__sleventlistFrame(inner[k]);
+                }
+            }
+        }).observe(root, { childList: true, subtree: true, attributes: true, attributeFilter: ['src'] });
+    }
+
+    function rootDocument() {
+        try {
+            var parent = window.parent;
+
+            return parent && parent !== window && parent.document ? parent.document : null;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function onFrame(frame) {
+        if (!PHONE_PAGE.test(String(frame.src || ''))) return;
+
+        if (!frame.__sleventlistFrame) {
+            frame.__sleventlistFrame = true;
+            frame.addEventListener('load', function () { chasePhone(frame, CHASE_FRAMES); });
+        }
+
+        chasePhone(frame, CHASE_FRAMES);
+    }
+
+    // A new frame first holds an empty page; the phone page replaces it a moment later. Look each frame until it is
+    // there, for about two seconds at most.
+    function chasePhone(frame, framesLeft) {
+        if (watchPhone(frame) || framesLeft <= 0) return;
+
+        var root = rootDocument();
+        var later = root && root.defaultView && root.defaultView.requestAnimationFrame;
+
+        if (typeof later !== 'function') return;
+
+        later.call(root.defaultView, function () { chasePhone(frame, framesLeft - 1); });
+    }
+
+    function watchPhone(frame) {
+        try {
+            var win = frame.contentWindow;
+            var doc = win && win.document;
+
+            if (!doc || !PHONE_PAGE.test(String(win.location))) return false;
+
+            var root = rootDocument();
+
+            if (!doc.__sleventlistWatched && root && typeof win.MutationObserver !== 'undefined') {
+                doc.__sleventlistWatched = true;
+                new win.MutationObserver(function () { root.__sleventlistPhone(doc); }).observe(doc, { childList: true, subtree: true });
+            }
+
+            drawPhone(doc);
+
+            return true;
+        } catch (e) {
+            // A page from another origin, or one being torn down: the plugin's next call tries again.
+            return true;
+        }
+    }
+
+    // Only adds or fixes the badge; placeBadge writes nothing when it is already right.
+    function drawPhone(doc) {
+        if (!lastBadge) return;
+
+        try {
+            showAppBadge(doc, lastBadge);
+        } catch (e) {}
     }
 
     function hudPhoneButton() {
@@ -703,6 +821,8 @@
     function describe(e) {
         return String(e && e.message ? e.message : e);
     }
+
+    watchPhones();
 
     // apply is the plugin's way in. rules are the parts that decide what the list does, kept here for the tests; the
     // page never calls them.

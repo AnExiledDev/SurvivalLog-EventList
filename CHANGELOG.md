@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.1
+
+- The event badge is on the phone's messages app the moment the phone opens, instead of showing up a moment later.
+- Made for Survival Log 1.1.19611.
+
 ## 0.4.0
 
 - Mod Manager's Mods screen links to this changelog.
