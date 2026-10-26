@@ -114,6 +114,34 @@ public class PhoneBadgePageTests
         Assert.False(page.Is("'overflow' in page.phoneButton.styles"));
     }
 
+    /// <summary>The plugin calls every couple of seconds; the HUD is searched for the phone button only when it is new.</summary>
+    [Fact]
+    public void A_phone_button_once_found_is_not_searched_for_again()
+    {
+        var page = PageScript.On(PhoneUp);
+
+        page.Apply(Defaults, Badge(2, false), NoPhoneScreen);
+        page.Run("var searches = countSearches(document, '.icon-sq > .icon-svg');");
+        page.Apply(Defaults, Badge(3, false), NoPhoneScreen);
+        page.Apply(Defaults, Badge(1, true), NoPhoneScreen);
+
+        Assert.Equal(0.0, page.Number("searches.count"));
+        Assert.Equal(Clock + "1", page.Text(HudBadge + ".textContent"));
+    }
+
+    [Fact]
+    public void A_phone_button_the_game_draws_again_gets_the_badge()
+    {
+        var page = PageScript.On(PhoneUp);
+
+        page.Apply(Defaults, Badge(2, false), NoPhoneScreen);
+        page.Run("var tools = page.phoneButton.parentElement; tools.removeChild(page.phoneButton);" +
+                 "page.phoneButton = tools.appendChild(hudButton(PHONE_ICON_PATH, false));");
+        page.Apply(Defaults, Badge(2, false), NoPhoneScreen);
+
+        Assert.Equal("2", page.Text(HudBadge + ".textContent"));
+    }
+
     [Fact]
     public void Only_the_phone_button_carries_the_badge()
     {

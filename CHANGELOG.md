@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.2
+
+- The phone runs smoother: once the event badge is on the messages app, the mod no longer searches the phone's screen each time something on it changes.
+- Less work in the background when the mod checks the phone's texts for the badge.
+- Made for Survival Log 1.1.19611.
+
 ## 0.4.1
 
 - The event badge is on the phone's messages app the moment the phone opens, instead of showing up a moment later.

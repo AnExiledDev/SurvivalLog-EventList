@@ -54,6 +54,10 @@ internal sealed class PhoneTexts
             if (conversation == null || messages == null || conversation.IsContactDead) continue;
             if (strangers != null && strangers.IsLost(conversation.ContactId)) continue;
 
+            // The game's own look for an event text still waiting, run inside the game: most conversations have none,
+            // and skipping them saves reading each of their texts through the game's objects every check.
+            if (!phone!.HasPendingEvent(conversation)) continue;
+
             for (var m = 0; m < messages.Count; m++)
             {
                 var message = messages[m];

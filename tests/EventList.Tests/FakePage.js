@@ -31,6 +31,15 @@ var FakeElement = class {
         };
     }
 
+    // In a page when the top of its parents is a page's root element; one taken out of the page, or never put in, is not.
+    get isConnected() {
+        var top = this;
+
+        while (top.parentElement) top = top.parentElement;
+
+        return top.tagName === 'html';
+    }
+
     hasAttribute(name) { return Object.prototype.hasOwnProperty.call(this.attrs, name); }
 
     getAttribute(name) { return this.hasAttribute(name) ? this.attrs[name] : null; }
@@ -127,6 +136,24 @@ function fakeDocument() {
 }
 
 var document = fakeDocument();
+
+// Counts the searches made on a document from now on (querySelector and querySelectorAll), or only those for one
+// selector. Returns { count }.
+function countSearches(doc, selector) {
+    var counter = { count: 0 };
+
+    ['querySelector', 'querySelectorAll'].forEach(function (name) {
+        var plain = doc[name];
+
+        doc[name] = function (wanted) {
+            if (selector === undefined || wanted === selector) counter.count++;
+
+            return plain.call(doc, wanted);
+        };
+    });
+
+    return counter;
+}
 
 document.addEventListener = function (type, listener) {
     (pointerListeners[type] = pointerListeners[type] || []).push(listener);

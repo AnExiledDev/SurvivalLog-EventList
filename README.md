@@ -69,7 +69,7 @@ Settings live in `BepInEx\config\com.dev.survivallog.eventlist.cfg`, created the
 
 Tested on Survival Log 1.1.19611 with BepInEx `6.0.0-be.788`.
 
-Check `BepInEx\LogOutput.log` for `===== Event List 0.4.1 started`. With the default settings the line after it reads `list at most 136px tall, emergencies then countdowns on top, countdowns soonest first, event badge on the phone`, and it is written again when a setting changes on the Mods screen. With `PhoneEventBadge` set to `false` it ends `no event badge` instead. With `Enabled` set to `false` the start line ends `off, EventList/Enabled is false; the list is left as the game draws it`.
+Check `BepInEx\LogOutput.log` for `===== Event List 0.4.2 started`. With the default settings the line after it reads `list at most 136px tall, emergencies then countdowns on top, countdowns soonest first, event badge on the phone`, and it is written again when a setting changes on the Mods screen. With `PhoneEventBadge` set to `false` it ends `no event badge` instead. With `Enabled` set to `false` the start line ends `off, EventList/Enabled is false; the list is left as the game draws it`.
 
 Once a game has loaded, look for `page script sent to CoreUI1 (install 1): the events list is held to its height`. If instead a line says `CoreUI1 is not the page this mod was written for`, a game update has changed the HUD and the list is left as the game draws it until the mod is updated. A line ending `so the event badge is not shown there` means the mod could not find the phone button or the messages app to put the badge on.
 

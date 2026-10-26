@@ -97,6 +97,67 @@ public class PhoneOpeningTests
         Assert.Equal(1.0, page.Number("phone.smsApp.querySelectorAll('.sl-eventbadge').length"));
     }
 
+    /// <summary>
+    /// The phone page changes many times a second while it is open (its clock, its animations, the game's own badges).
+    /// A search of the page on each of those made the phone lag, so with the badge in place a change searches nothing.
+    /// </summary>
+    [Fact]
+    public void Once_the_badge_is_on_changes_on_the_phone_page_search_nothing()
+    {
+        var page = Applied(2);
+
+        OpenPhone(page);
+        page.Run("var searches = countSearches(phone.document);" +
+                 "for (var i = 0; i < 5; i++) { phone.document.body.appendChild(new FakeElement('div', 'toast')); flush(); }");
+
+        Assert.Equal(0.0, page.Number("searches.count"));
+        Assert.Equal("2", page.Text(AppBadge + ".textContent"));
+    }
+
+    [Fact]
+    public void A_badge_the_game_takes_off_the_messages_app_goes_back_on()
+    {
+        var page = Applied(2);
+
+        OpenPhone(page);
+        page.Run("phone.smsApp.removeChild(phone.smsApp.querySelector('.sl-eventbadge')); flush();");
+
+        Assert.Equal("2", page.Text(AppBadge + ".textContent"));
+    }
+
+    [Fact]
+    public void A_messages_app_the_game_builds_again_gets_the_badge()
+    {
+        var page = Applied(2);
+
+        OpenPhone(page);
+        page.Run("phone.document.body.children.slice().forEach(function (child) { phone.document.body.removeChild(child); }); flush();" +
+                 "buildPhone(phone.document); flush();");
+
+        Assert.Equal("2", page.Text(AppBadge + ".textContent"));
+    }
+
+    /// <summary>A frame can report its page loading more than once; each look for the page must replace the last, not add to it.</summary>
+    [Fact]
+    public void A_frame_that_loads_again_is_looked_at_once_a_frame()
+    {
+        var page = Applied(1);
+
+        page.Run("var frame = openFrame(PHONE_URL); flush(); fireLoad(frame); fireLoad(frame); fireLoad(frame); nextFrame();");
+
+        Assert.Equal(1.0, page.Number("frameCallbacks.length"));
+    }
+
+    [Fact]
+    public void The_look_for_a_phone_page_that_never_comes_stops()
+    {
+        var page = Applied(1);
+
+        page.Run("var frame = openFrame(PHONE_URL); flush(); for (var i = 0; i < 200; i++) nextFrame();");
+
+        Assert.Equal(0.0, page.Number("frameCallbacks.length"));
+    }
+
     [Fact]
     public void Other_pages_are_left_alone()
     {

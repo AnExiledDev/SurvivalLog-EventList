@@ -70,4 +70,25 @@ public class PageCallsTests
         Assert.Contains("PhoneSMS\\.html", PageCalls.Check(settings, PhoneBadge.None));
         Assert.Contains("PhoneSMS\\.html", PageCalls.Install("var a;", settings, PhoneBadge.None));
     }
+
+    /// <summary>The check call goes every couple of seconds; it is built only when what it carries changed.</summary>
+    [Fact]
+    public void The_check_call_is_built_again_only_when_the_settings_or_the_badge_change()
+    {
+        var check = new CheckCall();
+        var settings = ListSettings.From(0, true, true, true);
+        var waiting = PhoneBadge.Of(new[] { new EventText(PhoneBadge.WaitingState, 0) });
+        var first = check.For(settings, waiting);
+
+        Assert.Equal(PageCalls.Check(settings, waiting), first);
+        Assert.Same(first, check.For(ListSettings.From(0, true, true, true), PhoneBadge.Of(new[] { new EventText(PhoneBadge.WaitingState, 0) })));
+
+        var timed = PhoneBadge.Of(new[] { new EventText(PhoneBadge.WaitingState, 500) });
+
+        Assert.Equal(PageCalls.Check(settings, timed), check.For(settings, timed));
+
+        var other = ListSettings.From(0, false, true, true);
+
+        Assert.Equal(PageCalls.Check(other, timed), check.For(other, timed));
+    }
 }

@@ -195,13 +195,26 @@
 
     // False only when texts wait and the phone's home screen is showing without its messages app.
     function showAppBadge(phoneDocument, badge) {
-        var app = phoneDocument.querySelector(PHONE_APP);
+        var app = phoneApp(phoneDocument);
 
         if (!app) return !(badge.waiting && phoneDocument.querySelector(PHONE_DOCK));
 
         placeBadge(phoneDocument, app, badge, APP_BADGE_CSS);
 
         return true;
+    }
+
+    // The game builds the messages app once with each phone page and keeps it while the page lives, so the app found
+    // first is kept on the page and the page is searched again only once that app has left it.
+    function phoneApp(doc) {
+        var app = doc.__sleventlistApp;
+
+        if (app && app.isConnected === true) return app;
+
+        app = doc.querySelector(PHONE_APP);
+        doc.__sleventlistApp = app;
+
+        return app;
     }
 
     // The game builds a new phone page every time the phone opens and shows it two frames after the page starts, long
@@ -265,23 +278,30 @@
 
         if (!frame.__sleventlistFrame) {
             frame.__sleventlistFrame = true;
-            frame.addEventListener('load', function () { chasePhone(frame, CHASE_FRAMES); });
+            frame.addEventListener('load', function () { chasePhone(frame); });
         }
 
-        chasePhone(frame, CHASE_FRAMES);
+        chasePhone(frame);
     }
 
     // A new frame first holds an empty page; the phone page replaces it a moment later. Look each frame until it is
-    // there, for about two seconds at most.
-    function chasePhone(frame, framesLeft) {
-        if (watchPhone(frame) || framesLeft <= 0) return;
+    // there, for about two seconds at most. A frame has one look at a time: starting a new one ends the one before.
+    function chasePhone(frame) {
+        var chase = frame.__sleventlistChase = (frame.__sleventlistChase || 0) + 1;
+        var framesLeft = CHASE_FRAMES;
 
-        var root = rootDocument();
-        var later = root && root.defaultView && root.defaultView.requestAnimationFrame;
+        step();
 
-        if (typeof later !== 'function') return;
+        function step() {
+            if (frame.__sleventlistChase !== chase || watchPhone(frame) || framesLeft-- <= 0) return;
 
-        later.call(root.defaultView, function () { chasePhone(frame, framesLeft - 1); });
+            var root = rootDocument();
+            var later = root && root.defaultView && root.defaultView.requestAnimationFrame;
+
+            if (typeof later !== 'function') return;
+
+            later.call(root.defaultView, step);
+        }
     }
 
     function watchPhone(frame) {
@@ -307,25 +327,52 @@
         }
     }
 
-    // Only adds or fixes the badge; placeBadge writes nothing when it is already right.
+    // Runs on every change to the phone page, so while the messages app is in place it costs a check that the app is
+    // still on the page and a look at the app's own few children. Only adds or fixes the badge; placeBadge writes
+    // nothing when it is already right.
     function drawPhone(doc) {
         if (!lastBadge) return;
 
         try {
-            showAppBadge(doc, lastBadge);
+            var app = phoneApp(doc);
+
+            if (app) placeBadge(doc, app, lastBadge, APP_BADGE_CSS);
         } catch (e) {}
     }
 
+    // The button found last is kept while it is on the page and still draws the phone icon; the HUD is searched only
+    // once it is not.
+    var hudButton = null;
+
     function hudPhoneButton() {
+        if (isPhoneButton(hudButton)) return hudButton;
+
         var icons = document.querySelectorAll(HUD_ICONS);
 
-        for (var i = 0; i < icons.length; i++) {
-            var path = icons[i].children[0];
+        hudButton = null;
 
-            if (path && String(path.getAttribute('d') || '').indexOf(PHONE_ICON) === 0) return icons[i].parentElement;
+        for (var i = 0; i < icons.length; i++) {
+            if (isPhoneIcon(icons[i])) {
+                hudButton = icons[i].parentElement;
+                break;
+            }
         }
 
-        return null;
+        return hudButton;
+    }
+
+    function isPhoneButton(button) {
+        if (!button || button.isConnected !== true || !button.classList.contains('icon-sq')) return false;
+
+        var icon = firstChildWithClass(button, 'icon-svg');
+
+        return !!icon && isPhoneIcon(icon);
+    }
+
+    function isPhoneIcon(icon) {
+        var path = icon.children[0];
+
+        return !!path && String(path.getAttribute('d') || '').indexOf(PHONE_ICON) === 0;
     }
 
     function isPhoneButtonUp() {
@@ -813,9 +860,11 @@
     }
 
     function firstChildWithClass(parent, className) {
-        var found = childrenWithClass(parent, className);
+        for (var i = 0; i < parent.children.length; i++) {
+            if (parent.children[i].classList.contains(className)) return parent.children[i];
+        }
 
-        return found.length ? found[0] : null;
+        return null;
     }
 
     function describe(e) {

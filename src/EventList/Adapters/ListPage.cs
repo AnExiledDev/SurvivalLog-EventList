@@ -17,6 +17,7 @@ internal sealed class ListPage
 
     private readonly PageWatch _watch = new();
     private readonly ReplySlot _replies = new();
+    private readonly CheckCall _check = new();
     private ListSettings _settings;
     private Func<PhoneBadge> _readBadge;
     private readonly Action<string> _log;
@@ -45,7 +46,7 @@ internal sealed class ListPage
         if (turn.Send == PageSend.Nothing) return;
 
         var badge = _readBadge();
-        var javaScript = turn.Send == PageSend.Install ? PageCalls.Install(Script(), _settings, badge) : PageCalls.Check(_settings, badge);
+        var javaScript = turn.Send == PageSend.Install ? PageCalls.Install(Script(), _settings, badge) : _check.For(_settings, badge);
 
         if (Run(javaScript, now) is { } line) _log(line);
     }
