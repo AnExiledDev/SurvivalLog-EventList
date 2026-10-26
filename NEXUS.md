@@ -21,6 +21,9 @@ Works in any game language.
 [size=5]Known issues[/size]
 The event badge on the phone is checked every two seconds, so a new event text can take that long to show on it, and like the game's own badge it counts nothing while the phone is locked. Turn off PhoneEventBadge in the config if you do not want it. With the soonest-first order of countdowns on, a whole group can move: the normal events can sit above the main events when their countdown runs out sooner. Turn off CountdownSoonestFirst in the config if you prefer the game's order. The rescue and siege boxes are separate panels and stay where the game puts them.
 
+[center][img]https://sldb.core-directive.com/img/mods-banner.jpg[/img]
+[size=4][url=https://www.nexusmods.com/survivallog/mods/73]Get Mod Manager[/url] to set up all your mods in game  |  [url=https://sldb.core-directive.com/en/]Open the Survival Log wiki[/url] for items, recipes and maps[/size][/center]
+
 [size=5]Requirements[/size]
 [list]
 [*]Survival Log 1.1.19611. A game update can break it until the mod is updated.[/*]
@@ -46,7 +49,6 @@ To change settings, edit [font=Courier New]BepInEx\config\com.dev.survivallog.ev
 [size=5]Feedback[/size]
 Found a bug or have an idea? Come say hi on the [url=https://discord.gg/trTsyxUFqg]Core Directive Discord[/url], or post in this page's Posts tab. For bugs, please include [font=Courier New]BepInEx\LogOutput.log[/font] and [font=Courier New]BepInEx\event-list.log[/font].
 To reach me directly, message [b]exiled.dev[/b] on Discord; you can find me in the [url=https://discord.gg/MZGg4gQAUe]official Survival Log Discord[/url]. I'm also on X as [url=https://x.com/AnExiledDev]@AnExiledDev[/url].
-Check out my [url=https://sldb.core-directive.com/en/]Survival Log wiki[/url] for items, crafting, maps and more.
 
 [size=5]Source and license[/size]
 Open source under MIT: [url=https://github.com/AnExiledDev/SurvivalLog-EventList]github.com/AnExiledDev/SurvivalLog-EventList[/url]
@@ -73,6 +75,8 @@ Event List 只改变屏幕上的显示。它读取手机里的短信来统计待
 [size=5]已知问题[/size]
 手机上的事件角标每两秒检查一次，所以新的事件短信可能要等这么久才会显示在角标上；和游戏自己的角标一样，手机锁定时它不计数。如果不想要它，请在配置中关闭 PhoneEventBadge。开启倒计时按最快结束排序时，整个分组可能会移动：当普通事件的倒计时先结束时，「事件」分组可能排到「主线」分组上方。如果你更喜欢游戏原有的顺序，请在配置中关闭 CountdownSoonestFirst。救援和围攻框是单独的面板，保持在游戏放置的位置。
 
+[url=https://www.nexusmods.com/survivallog/mods/73]获取 Mod Manager[/url]，在游戏里设置所有模组。[url=https://sldb.core-directive.com/zh/]打开 Survival Log 维基[/url]，物品、配方、地图一查就有。
+
 [size=5]前置要求[/size]
 [list]
 [*]Survival Log 1.1.19611。游戏更新后模组可能暂时失效，直到模组更新为止。[/*]
@@ -98,7 +102,6 @@ Event List 只改变屏幕上的显示。它读取手机里的短信来统计待
 [size=5]反馈[/size]
 发现 bug 或有好点子？欢迎来 [url=https://discord.gg/trTsyxUFqg]Core Directive Discord[/url] 打个招呼，或在本页的「Posts」标签里发帖。报告 bug 时，请附上 [font=Courier New]BepInEx\LogOutput.log[/font] 和 [font=Courier New]BepInEx\event-list.log[/font]。
 想直接联系我，可以在 Discord 上给 [b]exiled.dev[/b] 发消息，我在 [url=https://discord.gg/MZGg4gQAUe]Survival Log 官方 Discord[/url] 里。也可以在 X 上找我：[url=https://x.com/AnExiledDev]@AnExiledDev[/url]。
-也欢迎看看我做的 [url=https://sldb.core-directive.com/zh/]Survival Log 维基[/url]，收录物品、制作、地图等资料。
 
 [size=5]源代码与许可[/size]
 基于 MIT 许可开源：[url=https://github.com/AnExiledDev/SurvivalLog-EventList]github.com/AnExiledDev/SurvivalLog-EventList[/url]
