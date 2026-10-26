@@ -2,12 +2,15 @@
 
 ## 0.4.0
 
-- The Mods screen links this changelog.
-- On the Mods screen, settings that only matter while another setting is on stay hidden until it is.
+- Mod Manager's Mods screen links to this changelog.
+- On the Mods screen, a setting that only matters while another one is on stays hidden until that one is on.
 - Settings changed on the Mod Manager's Mods screen take effect at once, except Enabled, which takes effect at the next game start.
-- The Mods screen shows the mod's name, description, category and links.
-- Exiled's Toolkit 0.4.0 or newer is optional. With it, settings changed on the Mods screen take effect without a restart; without it, at the next game start.
+- Mod Manager's Mods screen shows the mod's name, description, category and links.
+- Exiled's Toolkit 0.4.0 or newer is optional. With it, settings you change on the Mods screen take effect right away. Without it, they take effect the next time you start the game.
 
 ## 0.3.2
 
-First public release. Keeps the events list on the HUD to a fixed height that scrolls, with emergencies and the soonest countdowns on top, and puts a badge on the phone for event texts you have not accepted yet.
+- First public release.
+- The events list on the HUD stays at a fixed height and scrolls, instead of running down the screen.
+- Emergencies and the countdowns closest to running out are shown at the top.
+- A badge on the phone counts the event texts you haven't accepted yet.
