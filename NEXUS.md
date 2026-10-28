@@ -2,6 +2,8 @@ Name: Event List
 Summary: Keeps the events list on the HUD to a fixed height that scrolls, so it never runs down your screen or hides events behind "...N more". Emergencies and the soonest countdowns move to the top, and a badge on the phone counts event texts you have not accepted yet, turning orange when one has a countdown.
 
 Description (BBCode):
+[center][img]https://sldb.core-directive.com/media/save/1-save-safe.png[/img][/center]
+
 Tired of the events list running down your screen, or hiding events behind "...N more"? Event List keeps the list to a fixed height and lets the rest scroll. Emergencies and running countdowns move to the top so you never miss them. And a second badge on the phone counts the event texts still waiting for you to accept them, so those are not missed either.
 
 [size=5]Main features[/size]
