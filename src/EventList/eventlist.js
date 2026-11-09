@@ -26,7 +26,7 @@
     var RANKED = 64;
 
     // The class and the height sit on <html>, outside the body the page's click-through watches, so setting them
-    // never makes it resend its rects. The scrollbar is the game's own 4px .event-scroll scrollbar.
+    // never makes it resend its rects. The scrollbar is the game's 4px .event-scroll scrollbar.
     // CSS order moves rows on screen without moving them in the DOM, so Vue's keyed patching never sees a change.
     // Equal orders keep DOM order, which is the game's. A ranked countdown sits between the emergencies and the
     // unranked countdowns, its rank counting up from -800.
@@ -53,7 +53,7 @@
         return rules;
     }
 
-    // The event badge sits on the top-left corner, across from the game's own red text badge on the top-right, and is
+    // The event badge sits on the top-left corner, across from the game's red text badge on the top-right, and is
     // drawn in the game's badge shape at each spot's size. Waiting texts make it teal; once one of them can run out it
     // turns orange, gains a clock and glows. It never takes the pointer, so clicks reach the button or app under it.
     var BADGE_STYLE_ID = 'sl-eventbadge-style';
@@ -488,7 +488,7 @@
         }
     }
 
-    // Puts the list back the way the game draws it: hover flag off as when the pointer is away, the game's own click
+    // Puts the list back the way the game draws it: hover flag off as when the pointer is away, the game's click
     // areas (the box takes clicks through its own class in scroll mode, rows take their own otherwise), and no marks.
     function giveBackToGame(dropped) {
         var box = document.querySelector(BOX);
@@ -583,7 +583,7 @@
     }
 
     // While the list overflows, the box takes clicks and the wheel as one rect and the rows give theirs up, the way the
-    // game's own scroll mode does it. The page's click-through does not clip to scroll boxes, so a row scrolled out of
+    // game's scroll mode does it. The page's click-through does not clip to scroll boxes, so a row scrolled out of
     // sight would otherwise still catch clicks meant for the world. A list that fits keeps the game's per-row rects.
     // Returns whether any click area changed, so the click-through is resent only then.
     function routeClicks(box, isGameScrollMode) {

@@ -15,7 +15,7 @@ public sealed record ListSettings
     /// <summary>A header and two rows; any less and the list is a sliver.</summary>
     public const int LowestMaxHeight = 60;
 
-    /// <summary>Past this a fixed height stops meaning anything; the game's own scroll box stops at 220.</summary>
+    /// <summary>Past this a fixed height stops meaning anything; the game's scroll box stops at 220.</summary>
     public const int HighestMaxHeight = 600;
 
     private ListSettings(int maxHeight, bool isImportantOnTop, bool isCountdownOnTop, bool isCountdownSoonestFirst)

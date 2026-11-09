@@ -208,7 +208,7 @@ var core = { clickThrough: { syncNowAfterReflow: function () {} } };
 // a row per item with its text in .event-text. Rows take clicks through data-interactive unless the game is in its own
 // scroll mode, where the box takes them through its unity-interactive class instead.
 // Below the list sit the HUD's square buttons: the phone, while the game has it up, then the bag. The phone button is
-// known only by its icon; with gameBadge it also shows the game's own red text badge. phoneButtonGone draws the game
+// known only by its icon; with gameBadge it also shows the game's red text badge. phoneButtonGone draws the game
 // saying its phone is up with no button on the page, as a game update that redraws it could.
 // spec: { groups: [[item, ...], ...], chips: [{ eventConfigId }], scrollMode, isOverflowing, phoneActive, gameBadge,
 //         phoneButtonGone }

@@ -6,7 +6,7 @@ In Survival Log the events list on the left of the screen grows down the screen 
 
 ## Features
 
-- **Fixed height**: the list stops at a set height (136 HUD pixels by default, room for both group headers and four rows). The rest scrolls with the mouse wheel over the list, using the game's own thin scrollbar.
+- **Fixed height**: the list stops at a set height (136 HUD pixels by default, room for both group headers and four rows). The rest scrolls with the mouse wheel over the list, using the game's thin scrollbar.
 - **Every event stays in the list**: the game's "...N more" cut never shows. Every event sits in the scroll box, so an important one is never hidden.
 - **Emergencies on top**: an event the game shows as one of its red emergency entries, or the zombie wave while it is spawning or charging, moves to the top of the list.
 - **Countdowns next**: an event with a running countdown moves up too, below the emergencies.
@@ -18,9 +18,9 @@ In Survival Log the events list on the left of the screen grows down the screen 
 - **Steps aside after a game update**: if the HUD changes so the mod no longer recognises it, the list is left exactly as the game draws it and the log says why in one line.
 - **Log file**: the mod writes what it did at startup and what the HUD answered to `BepInEx\event-list.log`.
 
-Event List only changes what is drawn on screen. It reads the texts in your phone to count the waiting event texts, and never writes the game's state, adds nothing to your save and does not edit game files. The game's own list and its data are never reordered; the order changes on screen only. You can remove it at any time; the list goes back to the game's own on the next start.
+Event List only changes what is drawn on screen. It reads the texts in your phone to count the waiting event texts, and never writes the game's state, adds nothing to your save and does not edit game files. The game's list and its data are never reordered; the order changes on screen only. You can remove it at any time; the list goes back to the game's on the next start.
 
-Importance comes from the game's own data for each event, never from its text, so it works in any game language.
+Importance comes from the game's data for each event, never from its text, so it works in any game language.
 
 ## How the list is ordered
 
@@ -39,7 +39,7 @@ The order is worked out again each time the game sends the list a new set of eve
 ## Known issues and limits
 
 - The event badge is checked every two seconds, so a new event text can take that long to show on it.
-- The event badge counts the same conversations as the game's own text badge: nothing while the phone is locked, and nothing from a contact who died or went missing.
+- The event badge counts the same conversations as the game's text badge: nothing while the phone is locked, and nothing from a contact who died or went missing.
 - The rescue, warehouse rescue and zombie siege boxes are separate panels with no event behind them, so they stay where the game puts them. A list row counts as an emergency only through the game's emergency entries or the zombie wave.
 - The game's "...N more" line never shows. To keep every event in the scroll box, the mod holds the list's own hover flag on.
 

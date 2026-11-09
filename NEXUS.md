@@ -14,14 +14,14 @@ Tired of the events list running down your screen, or hiding events behind "...N
 [*][b]Countdowns next[/b]: events with a running countdown come right after, the one about to run out first.[/*]
 [*][b]Back to the top[/b]: when an event becomes important the list scrolls up to show it, but never while your pointer is on the list.[/*]
 [*][b]Clicks work as before[/b]: clicks on the list and around it land where they did.[/*]
-[*][b]Event badge on the phone[/b]: a second badge on the phone button, and on the messages app inside the phone, counts the event texts waiting for you to accept them. It turns orange with an hourglass when one of them has a countdown, and goes away once nothing is waiting. The game's own red badge stays as it is.[/*]
+[*][b]Event badge on the phone[/b]: a second badge on the phone button, and on the messages app inside the phone, counts the event texts waiting for you to accept them. It turns orange with an hourglass when one of them has a countdown, and goes away once nothing is waiting. The game's red badge stays as it is.[/*]
 [/list]
 Event List only changes what is drawn on screen. It reads the texts in your phone to count the waiting event texts, and never changes the game's data, adds nothing to your save and does not edit game files. You can remove it at any time.
 
 Works in any game language.
 
 [size=5]Known issues[/size]
-The event badge on the phone is checked every two seconds, so a new event text can take that long to show on it, and like the game's own badge it counts nothing while the phone is locked. Turn off PhoneEventBadge in the config if you do not want it. With the soonest-first order of countdowns on, a whole group can move: the normal events can sit above the main events when their countdown runs out sooner. Turn off CountdownSoonestFirst in the config if you prefer the game's order. The rescue and siege boxes are separate panels and stay where the game puts them.
+The event badge on the phone is checked every two seconds, so a new event text can take that long to show on it, and like the game's badge it counts nothing while the phone is locked. Turn off PhoneEventBadge in the config if you do not want it. With the soonest-first order of countdowns on, a whole group can move: the normal events can sit above the main events when their countdown runs out sooner. Turn off CountdownSoonestFirst in the config if you prefer the game's order. The rescue and siege boxes are separate panels and stay where the game puts them.
 
 [center][img]https://sldb.core-directive.com/img/mods-banner.jpg[/img]
 [size=4][url=https://www.nexusmods.com/survivallog/mods/73]Get Mod Manager[/url] to set up all your mods in game  |  [url=https://sldb.core-directive.com/en/]Open the Survival Log wiki[/url] for items, recipes and maps[/size][/center]

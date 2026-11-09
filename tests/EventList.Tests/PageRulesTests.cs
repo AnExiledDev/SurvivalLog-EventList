@@ -11,7 +11,7 @@ public class PageRulesTests
     /// <summary>One group of three rows too tall for the box, drawn as the game draws it: the rows take clicks, the box does not.</summary>
     private const string OverflowingList = "{groups: [[{eventConfigId: 1, text: 'a'}, {eventConfigId: 2, text: 'b'}, {eventConfigId: 3, text: 'c'}]], isOverflowing: true}";
 
-    /// <summary>The same list in the game's own scroll mode, where the box takes clicks through its class and the rows take none.</summary>
+    /// <summary>The same list in the game's scroll mode, where the box takes clicks through its class and the rows take none.</summary>
     private const string OverflowingListInScrollMode = "{groups: [[{eventConfigId: 1, text: 'a'}, {eventConfigId: 2, text: 'b'}, {eventConfigId: 3, text: 'c'}]], isOverflowing: true, scrollMode: true}";
 
     private readonly PageScript _script = PageScript.Alone();

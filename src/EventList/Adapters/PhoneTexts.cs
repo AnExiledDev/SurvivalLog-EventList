@@ -7,7 +7,7 @@ namespace EventList.Adapters;
 
 /// <summary>
 /// Reads the event texts in the player's phone for the event badge. Read only: nothing in the game is written.
-/// Counts the conversations the game's own unread badge counts (PhoneSMSManager.GetUnreadCounts): none while the
+/// Counts the conversations the game's unread badge counts (PhoneSMSManager.GetUnreadCounts): none while the
 /// phone is locked, and none from a contact who died or was lost. A read that fails hides the badge and is logged once.
 /// </summary>
 internal sealed class PhoneTexts
@@ -54,7 +54,7 @@ internal sealed class PhoneTexts
             if (conversation == null || messages == null || conversation.IsContactDead) continue;
             if (strangers != null && strangers.IsLost(conversation.ContactId)) continue;
 
-            // The game's own look for an event text still waiting, run inside the game: most conversations have none,
+            // The game's look for an event text still waiting, run inside the game: most conversations have none,
             // and skipping them saves reading each of their texts through the game's objects every check.
             if (!phone!.HasPendingEvent(conversation)) continue;
 

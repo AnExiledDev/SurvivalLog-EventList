@@ -98,7 +98,7 @@ public class PhoneOpeningTests
     }
 
     /// <summary>
-    /// The phone page changes many times a second while it is open (its clock, its animations, the game's own badges).
+    /// The phone page changes many times a second while it is open (its clock, its animations, the game's badges).
     /// A search of the page on each of those made the phone lag, so with the badge in place a change searches nothing.
     /// </summary>
     [Fact]
