@@ -1,6 +1,8 @@
 using System;
 using System.IO;
 using EventList.Core;
+using ExiledToolkit.Game;
+using ExiledToolkit.Kit;
 using GameCore.HotUpdate.ReduxUI;
 
 namespace EventList.Adapters;

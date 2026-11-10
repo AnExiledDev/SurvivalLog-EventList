@@ -1,24 +1,24 @@
 using System;
-using System.IO;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Unity.IL2CPP;
 using EventList.Adapters;
 using EventList.Core;
+using ExiledToolkit;
+using ExiledToolkit.Kit;
 
 namespace EventList;
 
 [BepInPlugin(Guid, "Event List", Version)]
-[BepInDependency(OptionalLive.ToolkitGuid, BepInDependency.DependencyFlags.SoftDependency)]
+[BepInDependency(ToolkitGuid, ">=0.19.0")]
 public sealed class Plugin : BasePlugin
 {
     private const string Guid = "com.dev.survivallog.eventlist";
-    private const string Version = "0.4.2";
+    private const string Version = "0.4.3";
+    private const string ToolkitGuid = "com.dev.survivallog.exiledtoolkit";
 
     public override void Load()
     {
-        if (!OptionalLive.IsToolkitInstalled) Log.LogInfo(OptionalLive.MissingNote);
-
         var isEnabled = Config.Bind("EventList", "Enabled", true, new ConfigDescription(
             "Keep the events list on the left of the screen at a fixed height and scroll the rest. Off: the mod does nothing, so the list stays as the game draws it and the phone gets no event badge. Takes effect at the next game start.\n" +
             "把屏幕左侧的事件列表固定在一定高度，其余内容滚动查看。关闭后本模组不做任何改动：列表保持游戏原样，手机上也没有事件角标。下次启动游戏时生效。", null, "ModManager.Restart")).Value;
@@ -37,7 +37,7 @@ public sealed class Plugin : BasePlugin
         var isPhoneBadgeOn = Config.Bind("EventList", "PhoneEventBadge", true,
             new ConfigDescription("Show a second badge on the phone button and on the messages app, counting event texts you have not accepted yet; it turns orange with an hourglass when one of them has a countdown. Works only while Enabled is on.\n" +
             "在手机按钮和手机里的「短信」上多显示一个角标，统计还没接取的事件短信；其中有带倒计时的事件时，角标变成橙色并显示沙漏。仅在 Enabled 开启时生效。", null, "ModManager.ShowWhen=Enabled"));
-        var log = new ListLog(Log, Path.Combine(Paths.BepInExRootPath, "event-list.log"));
+        var log = new ModLog(Log, "event-list.log");
 
         if (!isEnabled)
         {
@@ -54,7 +54,7 @@ public sealed class Plugin : BasePlugin
         var page = new ListPage(ReadSettings(), ReadBadgeSource(), log.Write);
 
         log.Write($"===== Event List {Version} started");
-        OptionalLive.Watch(() =>
+        LiveSettings.Watch(() =>
         {
             var settings = ReadSettings();
 

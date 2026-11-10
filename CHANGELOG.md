@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.3
+
+- Now uses Exiled's Toolkit for its shared parts, so it needs Exiled's Toolkit 0.19.0 or newer.
+- Made for Survival Log 1.1.20719.
+
 ## 0.4.2
 
 - The phone runs smoother: once the event badge is on the messages app, the mod no longer searches the phone's screen each time something on it changes.

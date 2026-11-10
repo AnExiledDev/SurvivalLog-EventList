@@ -1,5 +1,5 @@
 using System.Globalization;
-using System.Text;
+using ExiledToolkit.Web;
 
 namespace EventList.Core;
 
@@ -33,7 +33,7 @@ public static class PageCalls
 
     /// <summary>Evaluates the script inside the CoreUI1 frame, so it sees that page's Vue app, state and click-through.</summary>
     public static string Install(string script, ListSettings settings, PhoneBadge badge) =>
-        Wrap($"w.eval({Quote(script)});if(!{Api})return '{PageAnswer.InstallLeftNothing}';{Apply(settings, badge)}");
+        Wrap($"w.eval({JsText.Literal(script)});if(!{Api})return '{PageAnswer.InstallLeftNothing}';{Apply(settings, badge)}");
 
     public static string Settings(ListSettings settings) =>
         $"{{maxHeight:{Number(settings.MaxHeight)},importantOnTop:{Bool(settings.IsImportantOnTop)},countdownOnTop:{Bool(settings.IsCountdownOnTop)},soonestFirst:{Bool(settings.IsCountdownSoonestFirst)}}}";
@@ -41,33 +41,6 @@ public static class PageCalls
     /// <summary>The event badge as the page script reads it: how many event texts wait, and whether one of them runs out.</summary>
     public static string Badge(PhoneBadge badge) =>
         $"{{waiting:{Number(badge.Waiting)},timed:{Bool(badge.HasTimeLimit)}}}";
-
-    /// <summary>A JavaScript string literal that no quote, backslash or line break in the text can end early.</summary>
-    public static string Quote(string text)
-    {
-        var literal = new StringBuilder(text.Length + 2).Append('"');
-
-        foreach (var c in text)
-        {
-            switch (c)
-            {
-                case '"':
-                    literal.Append("\\\"");
-                    break;
-                case '\\':
-                    literal.Append("\\\\");
-                    break;
-                case < ' ' or '\u2028' or '\u2029':
-                    literal.Append("\\u").Append(((int)c).ToString("x4", CultureInfo.InvariantCulture));
-                    break;
-                default:
-                    literal.Append(c);
-                    break;
-            }
-        }
-
-        return literal.Append('"').ToString();
-    }
 
     private static string Apply(ListSettings settings, PhoneBadge badge) =>
         FindPhone + $"return String({Api}.apply({Settings(settings)},{Badge(badge)},phone));";

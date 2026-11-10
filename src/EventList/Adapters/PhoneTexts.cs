@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using EventList.Core;
+using ExiledToolkit.Game;
 using GameCore.HotUpdate.Battle.Logic;
 
 namespace EventList.Adapters;

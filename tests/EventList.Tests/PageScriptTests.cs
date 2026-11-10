@@ -1,4 +1,5 @@
 using EventList.Core;
+using ExiledToolkit.Web;
 using Xunit;
 
 namespace EventList.Tests;
@@ -250,7 +251,7 @@ public class PageScriptTests
 
     private static string Rank(PageScript page, string element) => page.Text($"{element}.getAttribute('data-sl-rank') || ''");
 
-    private static double OrderOf(PageScript page, string selector) => page.Number($"orderOf({PageCalls.Quote(selector)})");
+    private static double OrderOf(PageScript page, string selector) => page.Number($"orderOf({JsText.Literal(selector)})");
 
     private static string Mark(PageScript page, string element) => page.Text($"{element}.getAttribute('data-sl-important') || ''");
 }
