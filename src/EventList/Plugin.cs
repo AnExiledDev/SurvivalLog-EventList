@@ -10,11 +10,11 @@ using ExiledToolkit.Kit;
 namespace EventList;
 
 [BepInPlugin(Guid, "Event List", Version)]
-[BepInDependency(ToolkitGuid, ">=0.19.0")]
+[BepInDependency(ToolkitGuid, ">=0.20.0")]
 public sealed class Plugin : BasePlugin
 {
     private const string Guid = "com.dev.survivallog.eventlist";
-    private const string Version = "0.4.3";
+    private const string Version = "0.4.4";
     private const string ToolkitGuid = "com.dev.survivallog.exiledtoolkit";
 
     public override void Load()
