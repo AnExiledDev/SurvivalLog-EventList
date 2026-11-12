@@ -18,7 +18,7 @@ public class PageCallsTests
     public void Every_call_hands_the_page_the_configured_height_and_order()
     {
         var settings = ListSettings.From(150, true, false, false);
-        var expected = "{maxHeight:150,importantOnTop:true,countdownOnTop:false,soonestFirst:false}";
+        var expected = "{maxHeight:150,importantOnTop:true,countdownOnTop:false,soonestFirst:false,layout:'groups',zh:false}";
 
         Assert.Equal(expected, PageCalls.Settings(settings));
         Assert.Contains(expected, PageCalls.Check(settings, PhoneBadge.None));
@@ -51,6 +51,36 @@ public class PageCallsTests
 
         Assert.Contains("PhoneSMS\\.html", PageCalls.Check(settings, PhoneBadge.None));
         Assert.Contains("PhoneSMS\\.html", PageCalls.Install("var a;", settings, PhoneBadge.None));
+    }
+
+    [Fact]
+    public void The_lanes_layout_and_the_game_s_language_reach_the_page()
+    {
+        var settings = ListSettings.From(150, true, true, true, ListLayout.Lanes, true);
+
+        Assert.Equal("{maxHeight:150,importantOnTop:true,countdownOnTop:true,soonestFirst:true,layout:'lanes',zh:true}", PageCalls.Settings(settings));
+    }
+
+    [Fact]
+    public void Every_call_hands_the_lanes_what_the_plugin_read_about_the_running_events()
+    {
+        var settings = ListSettings.From(0, true, true, true, ListLayout.Lanes, false);
+        const string facts = "{\"7\":{total:600,needs:[]}}";
+
+        Assert.Contains(",phone," + facts + "))", PageCalls.Check(settings, PhoneBadge.None, facts));
+        Assert.Contains(",phone," + facts + "))", PageCalls.Install("var a;", settings, PhoneBadge.None, facts));
+        Assert.Contains(",phone," + LaneFacts.None + "))", PageCalls.Check(settings, PhoneBadge.None));
+    }
+
+    [Fact]
+    public void The_check_call_is_built_again_when_the_lanes_facts_change()
+    {
+        var check = new CheckCall();
+        var settings = ListSettings.From(0, true, true, true, ListLayout.Lanes, false);
+        var first = check.For(settings, PhoneBadge.None, "{\"7\":{total:600,needs:[]}}");
+
+        Assert.Same(first, check.For(settings, PhoneBadge.None, "{\"7\":{total:600,needs:[]}}"));
+        Assert.Equal(PageCalls.Check(settings, PhoneBadge.None, LaneFacts.None), check.For(settings, PhoneBadge.None, LaneFacts.None));
     }
 
     /// <summary>The check call goes every couple of seconds; it is built only when what it carries changed.</summary>

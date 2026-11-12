@@ -1,5 +1,5 @@
 Name: Event List
-Summary: Keeps the events list on the HUD to a fixed height that scrolls, so it never runs down your screen or hides events behind "...N more". Emergencies and the soonest countdowns move to the top, and a badge on the phone counts event texts you have not accepted yet, turning orange when one has a countdown.
+Summary: Keeps the events list on the HUD to a fixed height that scrolls, so it never runs down your screen or hides events behind "...N more". Emergencies and the soonest countdowns move to the top, or turn on lanes to split them into Now, Countdowns and In progress. A phone badge counts event texts you have not accepted yet.
 
 Description (BBCode):
 [center][img]https://sldb.core-directive.com/media/save/1-save-safe.png[/img][/center]
@@ -14,6 +14,7 @@ Tired of the events list running down your screen, or hiding events behind "...N
 [*][b]Countdowns next[/b]: events with a running countdown come right after, the one about to run out first.[/*]
 [*][b]Back to the top[/b]: when an event becomes important the list scrolls up to show it, but never while your pointer is on the list.[/*]
 [*][b]Clicks work as before[/b]: clicks on the list and around it land where they did.[/*]
+[*][b]Lanes[/b]: set Layout to Lanes and the list is split into three lanes, the most urgent on top. Now holds emergencies and countdowns with less than 6 hours left, each showing when it runs out and which items it still needs. Countdowns holds the other timers, soonest first, each with a bar that shrinks as time runs out. In progress holds everything else and starts folded. During a rescue, a zombie siege or an emergency, only Now stays open. Lanes are off until you turn them on.[/*]
 [*][b]Event badge on the phone[/b]: a second badge on the phone button, and on the messages app inside the phone, counts the event texts waiting for you to accept them. It turns orange with an hourglass when one of them has a countdown, and goes away once nothing is waiting. The game's red badge stays as it is.[/*]
 [/list]
 Event List only changes what is drawn on screen. It reads the texts in your phone to count the waiting event texts, and never changes the game's data, adds nothing to your save and does not edit game files. You can remove it at any time.
@@ -69,6 +70,7 @@ Open source under MIT: [url=https://github.com/AnExiledDev/SurvivalLog-EventList
 [*][b]倒计时其次[/b]：正在倒计时的事件紧随其后，最快结束的排在最前。[/*]
 [*][b]回到顶部[/b]：事件变得重要时，列表会向上滚动显示它，但鼠标停在列表上时不会。[/*]
 [*][b]点击照常[/b]：在列表上和周围的点击，效果和原来一样。[/*]
+[*][b]分栏[/b]：把 Layout 设为 Lanes，列表会按紧急程度分成「紧急」「倒计时」「进行中」三栏。「紧急」显示危机和 6 小时内结束的倒计时，每行写出结束时间和还缺的物品。「倒计时」按剩余时间排序，每行有一条随时间缩短的进度条。「进行中」放其余事件，默认折叠。救援、尸潮或危机期间，只有「紧急」保持展开。分栏默认关闭，需要手动开启。[/*]
 [*][b]手机上的事件角标[/b]：手机按钮和手机里的「短信」上会多一个角标，统计等你接取的事件短信。其中有带倒计时的事件时，角标变成橙色并显示沙漏；没有待接取的短信时，角标消失。游戏自己的红色角标保持不变。[/*]
 [/list]
 Event List 只改变屏幕上的显示。它读取手机里的短信来统计待接取的事件短信，从不改动游戏数据，不会往存档里写入任何内容，也不会修改游戏文件。你可以随时移除它。
@@ -101,7 +103,7 @@ Event List 只改变屏幕上的显示。它读取手机里的短信来统计待
 从 [font=Courier New]BepInEx\plugins[/font] 文件夹中删除 [font=Courier New]EventList.dll[/font]。
 
 [size=5]配置[/size]
-如需修改高度、排序或关闭角标，可以在游戏内 Mod Manager 的「模组」界面修改（改动立即生效，[font=Courier New]Enabled[/font] 在下次启动游戏时生效），也可以在游戏关闭时编辑 [font=Courier New]BepInEx\config\com.dev.survivallog.eventlist.cfg[/font]。配置文件中每项设置都有中文说明，完整说明见 [url=https://github.com/AnExiledDev/SurvivalLog-EventList/blob/main/CONFIG.md]CONFIG.md[/url]（英文）。
+如需修改高度、排序、样式或关闭角标，可以在游戏内 Mod Manager 的「模组」界面修改（改动立即生效，[font=Courier New]Enabled[/font] 在下次启动游戏时生效），也可以在游戏关闭时编辑 [font=Courier New]BepInEx\config\com.dev.survivallog.eventlist.cfg[/font]。配置文件中每项设置都有中文说明，完整说明见 [url=https://github.com/AnExiledDev/SurvivalLog-EventList/blob/main/CONFIG.md]CONFIG.md[/url]（英文）。
 
 [size=5]反馈[/size]
 发现 bug 或有好点子？欢迎来 [url=https://discord.gg/trTsyxUFqg]Core Directive Discord[/url] 打个招呼，或在本页的「Posts」标签里发帖。报告 bug 时，请附上 [font=Courier New]BepInEx\LogOutput.log[/font] 和 [font=Courier New]BepInEx\event-list.log[/font]。

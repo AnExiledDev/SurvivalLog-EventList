@@ -1,6 +1,7 @@
-// Just enough of the CoreUI1 page for eventlist.js to run in Jint: elements with classes, attributes and a parent,
-// the few selectors the script uses, the three Vue calls it makes, the page's click-through, the events list and the
-// HUD's phone button drawn the way the game's template draws them, and the phone's home screen from the PhoneSMS page.
+// Just enough of the CoreUI1 page for eventlist.js and lanes.js to run in Jint: elements with classes, attributes, a
+// parent and click listeners, the few selectors the scripts use, the three Vue calls they make, the page's
+// click-through and its message to the game, the events list and the HUD's phone button drawn the way the game's
+// template draws them, and the phone's home screen from the PhoneSMS page.
 // Test code only; nothing here ships.
 var window = this;
 
@@ -17,6 +18,7 @@ var FakeElement = class {
         this.clientHeight = 0;
         this.scrollTop = 0;
         this.attrs = {};
+        this.listeners = {};
         this.classes = className ? className.split(' ') : [];
         this.styles = {};
         this.classList = {
@@ -44,15 +46,40 @@ var FakeElement = class {
 
     getAttribute(name) { return this.hasAttribute(name) ? this.attrs[name] : null; }
 
-    setAttribute(name, value) { this.attrs[name] = String(value); }
+    // An svg element has no writable className, so the lanes set its class through the attribute.
+    setAttribute(name, value) {
+        if (name === 'class') this.classes = String(value).split(' ');
+        else this.attrs[name] = String(value);
+    }
 
     removeAttribute(name) { delete this.attrs[name]; }
 
+    // As in a browser, an element put somewhere else leaves where it was.
     appendChild(child) {
+        if (child.parentElement) child.parentElement.removeChild(child);
+
         child.parentElement = this;
         this.children.push(child);
 
         return child;
+    }
+
+    insertBefore(child, before) {
+        if (!before) return this.appendChild(child);
+        if (child.parentElement) child.parentElement.removeChild(child);
+
+        var at = this.children.indexOf(before);
+
+        if (at < 0) throw new Error('insertBefore: the element to insert before is not a child of this element');
+
+        child.parentElement = this;
+        this.children.splice(at, 0, child);
+
+        return child;
+    }
+
+    addEventListener(type, listener) {
+        (this.listeners[type] = this.listeners[type] || []).push(listener);
     }
 
     removeChild(child) {
@@ -104,6 +131,27 @@ function matchesStep(element, step) {
     throw new Error('the fake page does not know the selector "' + step + '"');
 }
 
+// Fires an event on an element and every parent above it, the way a click bubbles. Returns the event, so a test can
+// see whether a listener stopped it.
+function dispatch(target, type, fields) {
+    var event = { type: type, target: target, isStopped: false, isDefaultPrevented: false };
+
+    event.stopPropagation = function () { event.isStopped = true; };
+    event.preventDefault = function () { event.isDefaultPrevented = true; };
+
+    for (var key in fields || {}) event[key] = fields[key];
+
+    for (var element = target; element; element = element.parentElement) {
+        (element.listeners[type] || []).slice().forEach(function (listener) { listener(event); });
+    }
+
+    return event;
+}
+
+function click(target) {
+    return dispatch(target, 'click');
+}
+
 function descendantsOf(root) {
     var found = [];
 
@@ -125,6 +173,7 @@ function fakeDocument() {
             return descendantsOf(doc.documentElement).filter(function (element) { return element.id === id; })[0] || null;
         },
         createElement: function (tagName) { return new FakeElement(tagName); },
+        createElementNS: function (namespace, tagName) { return new FakeElement(tagName); },
         querySelector: function (selector) { return doc.documentElement.querySelector(selector); },
         querySelectorAll: function (selector) { return doc.documentElement.querySelectorAll(selector); }
     };
@@ -176,8 +225,9 @@ function firePointer(type, target, relatedTarget) {
 }
 
 // A sync-flush watchEffect reruns the moment state it read is written; the page reads only the hover flag that way,
-// so writes to that flag are the only ones that rerun effects here. watch callbacks are kept and never fired: the
-// tests refresh the list through apply, the plugin's two-second check.
+// so writes to that flag are the only ones that rerun effects here. watch callbacks fire only when a test calls
+// Vue.runWatchers, and then only for a watch one of whose sources now reads differently; otherwise the tests refresh
+// the list through apply, the plugin's two-second check.
 var Vue = {
     effects: [],
     watchers: [],
@@ -190,11 +240,24 @@ var Vue = {
         return function () { effect.isActive = false; };
     },
     watch: function (sources, callback) {
-        var watcher = { sources: sources, callback: callback, isActive: true };
+        var watcher = { sources: sources, callback: callback, isActive: true, seen: Vue.read(sources) };
 
         Vue.watchers.push(watcher);
 
         return function () { watcher.isActive = false; };
+    },
+    read: function (sources) {
+        return sources.map(function (source) { return source(); });
+    },
+    runWatchers: function () {
+        Vue.watchers.filter(function (watcher) { return watcher.isActive; }).forEach(function (watcher) {
+            var now = Vue.read(watcher.sources);
+            var isChanged = now.some(function (value, i) { return value !== watcher.seen[i]; });
+
+            watcher.seen = now;
+
+            if (isChanged) watcher.callback();
+        });
     },
     nextTick: function (callback) { callback(); },
     rerunEffects: function () {
@@ -202,7 +265,13 @@ var Vue = {
     }
 };
 
-var core = { clickThrough: { syncNowAfterReflow: function () {} } };
+var core = { clickThrough: { syncs: 0, syncNowAfterReflow: function () { core.clickThrough.syncs++; } } };
+
+// Two of the game's LINE_ICON entries: [colour, svg path].
+var LINE_ICONS = {
+    supply: ['#8bc34a', 'M2 2h20v20H2z'],
+    rescue: ['#ef5350', 'M12 2l10 20H2z']
+};
 
 // Draws the events list as CoreUI1's template does: the panel, its scroll box, one group per list with a header, and
 // a row per item with its text in .event-text. Rows take clicks through data-interactive unless the game is in its own
@@ -210,11 +279,14 @@ var core = { clickThrough: { syncNowAfterReflow: function () {} } };
 // Below the list sit the HUD's square buttons: the phone, while the game has it up, then the bag. The phone button is
 // known only by its icon; with gameBadge it also shows the game's red text badge. phoneButtonGone draws the game
 // saying its phone is up with no button on the page, as a game update that redraws it could.
-// spec: { groups: [[item, ...], ...], chips: [{ eventConfigId }], scrollMode, isOverflowing, phoneActive, gameBadge,
-//         phoneButtonGone }
+// The first group is the gold story group (key main), the next the grey one (key normal), as the game sends them.
+// Every message a row click sends the game lands in sent, as { action, data }.
+// spec: { groups: [[item, ...], ...], chips: [{ eventConfigId }], scrollMode, compactMode, isOverflowing,
+//         phoneActive, gameBadge, phoneButtonGone, clock: [hour, minute], day }
 function buildPage(spec) {
     var isHovered = false;
-    var groups = spec.groups.map(function (items) { return { items: items }; });
+    var groups = spec.groups.map(function (items, i) { return { key: i === 0 ? 'main' : 'normal', items: items }; });
+    var sent = [];
     var chips = spec.chips || [];
     var state = {
         phoneActive: !!spec.phoneActive,
@@ -223,7 +295,10 @@ function buildPage(spec) {
         eventStates: chips,
         eventStatesActive: chips.length > 0,
         towerWaveState: 0,
-        towerWaveEventId: 0
+        towerWaveEventId: 0,
+        clockHour: spec.clock ? spec.clock[0] : 18,
+        clockMinute: spec.clock ? spec.clock[1] : 0,
+        dayNumber: spec.day || 'DAY51'
     };
 
     Object.defineProperty(state, 'eventHover', {
@@ -237,7 +312,14 @@ function buildPage(spec) {
         }
     });
 
-    var setupState = { groupedEventList: groups, eventScrollMode: !!spec.scrollMode, state: state };
+    var setupState = {
+        groupedEventList: groups,
+        eventScrollMode: !!spec.scrollMode,
+        eventCompactMode: !!spec.compactMode,
+        LINE_ICON: LINE_ICONS,
+        state: state,
+        UnitySendEvent: function (action, data) { sent.push({ action: action, data: data }); }
+    };
     var app = document.body.appendChild(new FakeElement('div'));
     var panel = app.appendChild(new FakeElement('div', 'event-panel'));
     var box = panel.appendChild(new FakeElement('div', spec.scrollMode ? 'event-scroll unity-interactive' : 'event-scroll'));
@@ -273,8 +355,11 @@ function buildPage(spec) {
 
     return {
         app: app,
+        panel: panel,
         phoneButton: phoneButton,
         state: state,
+        setupState: setupState,
+        sent: sent,
         box: box,
         groupEls: box.children.slice(),
         rows: descendantsOf(box).filter(function (element) { return element.classList.contains('event-item-row'); }),

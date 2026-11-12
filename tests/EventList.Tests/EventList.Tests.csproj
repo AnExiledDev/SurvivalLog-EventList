@@ -19,6 +19,7 @@
 
   <!-- The page script, as the plugin ships it, run in Jint against a fake page. -->
   <ItemGroup>
+    <EmbeddedResource Include="..\..\src\EventList\lanes.js" LogicalName="EventList.lanes.js" Link="lanes.js" />
     <EmbeddedResource Include="..\..\src\EventList\eventlist.js" LogicalName="EventList.eventlist.js" Link="eventlist.js" />
     <EmbeddedResource Include="FakePage.js" LogicalName="EventList.Tests.FakePage.js" />
     <EmbeddedResource Include="FrameFake.js" LogicalName="EventList.Tests.FrameFake.js" />

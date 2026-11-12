@@ -2,6 +2,13 @@ using System;
 
 namespace EventList.Core;
 
+/// <summary>Groups: the game's list, held to a height and reordered. Lanes: our own panel, events split into lanes by how urgent they are.</summary>
+public enum ListLayout
+{
+    Groups,
+    Lanes
+}
+
 /// <summary>How the page script draws the events list. Built only through <see cref="From"/>, so the height is always one the page can use.</summary>
 public sealed record ListSettings
 {
@@ -18,12 +25,19 @@ public sealed record ListSettings
     /// <summary>Past this a fixed height stops meaning anything; the game's scroll box stops at 220.</summary>
     public const int HighestMaxHeight = 600;
 
-    private ListSettings(int maxHeight, bool isImportantOnTop, bool isCountdownOnTop, bool isCountdownSoonestFirst)
+    public const string GroupsName = "Groups";
+    public const string LanesName = "Lanes";
+
+    public static readonly string[] LayoutNames = { GroupsName, LanesName };
+
+    private ListSettings(int maxHeight, bool isImportantOnTop, bool isCountdownOnTop, bool isCountdownSoonestFirst, ListLayout layout, bool isChinese)
     {
         MaxHeight = maxHeight;
         IsImportantOnTop = isImportantOnTop;
         IsCountdownOnTop = isCountdownOnTop;
         IsCountdownSoonestFirst = isCountdownSoonestFirst;
+        Layout = layout;
+        IsChinese = isChinese;
     }
 
     /// <summary>In the page's own CSS pixels, the unit the game's list is laid out in.</summary>
@@ -37,14 +51,32 @@ public sealed record ListSettings
     /// <summary>Whether the countdowns on top are ordered by time left, soonest first. Means nothing while <see cref="IsCountdownOnTop"/> is off.</summary>
     public bool IsCountdownSoonestFirst { get; }
 
+    /// <summary>The three order settings above mean nothing in <see cref="ListLayout.Lanes"/>; the height still holds.</summary>
+    public ListLayout Layout { get; }
+
+    /// <summary>Whether the game shows Chinese, for the words the lanes write themselves. Not a setting: read from the game.</summary>
+    public bool IsChinese { get; }
+
     public static ListSettings From(int requestedMaxHeight, bool isImportantOnTop, bool isCountdownOnTop, bool isCountdownSoonestFirst) =>
-        new(ClampMaxHeight(requestedMaxHeight), isImportantOnTop, isCountdownOnTop, isCountdownSoonestFirst);
+        From(requestedMaxHeight, isImportantOnTop, isCountdownOnTop, isCountdownSoonestFirst, ListLayout.Groups, false);
+
+    public static ListSettings From(int requestedMaxHeight, bool isImportantOnTop, bool isCountdownOnTop, bool isCountdownSoonestFirst, ListLayout layout, bool isChinese) =>
+        new(ClampMaxHeight(requestedMaxHeight), isImportantOnTop, isCountdownOnTop, isCountdownSoonestFirst, layout, isChinese);
+
+    /// <summary>The saved Layout text as a layout; anything but Lanes is Groups, so a typo leaves the list as it was.</summary>
+    public static ListLayout LayoutOf(string? saved) =>
+        string.Equals(saved?.Trim(), LanesName, StringComparison.OrdinalIgnoreCase) ? ListLayout.Lanes : ListLayout.Groups;
+
+    /// <summary>These settings with the game's language as it is now; the same object when it has not changed.</summary>
+    public ListSettings WithChinese(bool isChinese) =>
+        isChinese == IsChinese ? this : new(MaxHeight, IsImportantOnTop, IsCountdownOnTop, IsCountdownSoonestFirst, Layout, isChinese);
 
     /// <summary>0 or less asks for the default; anything else is held inside the range the page can show.</summary>
     public static int ClampMaxHeight(int requested) =>
         requested <= 0 ? DefaultMaxHeight : Math.Clamp(requested, LowestMaxHeight, HighestMaxHeight);
 
-    public string Describe() => $"list at most {MaxHeight}px tall, " + DescribeOrder();
+    public string Describe() =>
+        Layout == ListLayout.Lanes ? $"lanes at most {MaxHeight}px tall" : $"list at most {MaxHeight}px tall, " + DescribeOrder();
 
     private string DescribeOrder()
     {

@@ -1,10 +1,12 @@
 // Event List: runs inside the CoreUI1 page, the iframe in Root.html that draws the HUD.
-// Holds the events list to a fixed height (the rest scrolls) and moves important events to the top, and puts the
-// event badge on the phone: how many event texts wait to be accepted.
-// Sent once per page load; the plugin then calls window.__sleventlist.apply(settings, badge, phoneDocument) every
-// couple of seconds. phoneDocument is the PhoneSMS page's, or null while the game has no phone screen up.
-// Touches only the DOM of this page and the phone page, one stylesheet in each, and the page-only eventHover flag;
-// nothing reaches the game.
+// Holds the events list to a fixed height (the rest scrolls) and moves important events to the top, or draws it as
+// lanes (lanes.js, sent just before this file), and puts the event badge on the phone: how many event texts wait to
+// be accepted.
+// Sent once per page load; the plugin then calls window.__sleventlist.apply(settings, badge, phoneDocument, facts)
+// every couple of seconds. phoneDocument is the PhoneSMS page's, or null while the game has no phone screen up. facts
+// is what the plugin read about each running event for the lanes: { "<id>": { total, needs } }.
+// Touches only the DOM of this page and the phone page, one stylesheet in each, and the page-only eventHover flag.
+// The lanes send the game a row click, the same message a click on the game's row sends; nothing else reaches it.
 (function () {
     'use strict';
 
@@ -12,6 +14,7 @@
 
     var STYLE_ID = 'sl-eventlist-style';
     var ACTIVE_CLASS = 'sl-eventlist';
+    var LANES_CLASS = 'sl-eventlist-lanes';
     var HEIGHT_VAR = '--sl-eventlist-max';
     var PANEL = '.event-panel';
     var BOX = '.event-panel > .event-scroll';
@@ -87,6 +90,7 @@
     }
 
     var settings = readSettings(null);
+    var facts = {};
     var hook = null;
     var lastImportant = {};
     var lastError = '';
@@ -96,8 +100,9 @@
     // The badge is drawn before the list and whatever the list finds, so a list this script cannot hold still leaves
     // the badge working. A badge spot that should be on the page and is not is reported after the list's answer and
     // '; ', so a held list answers 'ok; ' and the note.
-    function apply(next, nextBadge, phoneDocument) {
+    function apply(next, nextBadge, phoneDocument, nextFacts) {
         lastBadge = readBadge(nextBadge);
+        facts = nextFacts && typeof nextFacts === 'object' ? nextFacts : {};
 
         var badgeNote = showBadges(lastBadge, phoneDocument);
 
@@ -111,7 +116,7 @@
     function applyList(next) {
         try {
             var wanted = readSettings(next);
-            var isChanged = wanted.maxHeight !== settings.maxHeight || wanted.importantOnTop !== settings.importantOnTop || wanted.countdownOnTop !== settings.countdownOnTop || wanted.soonestFirst !== settings.soonestFirst;
+            var isChanged = wanted.maxHeight !== settings.maxHeight || wanted.importantOnTop !== settings.importantOnTop || wanted.countdownOnTop !== settings.countdownOnTop || wanted.soonestFirst !== settings.soonestFirst || wanted.layout !== settings.layout || wanted.zh !== settings.zh;
             var previousHook = hook;
             settings = wanted;
 
@@ -126,7 +131,7 @@
 
             showStyle();
 
-            // A fresh hook or a new height changes the layout Vue is about to patch; read it after the patch lands.
+            // A fresh hook or a new setting changes the layout Vue is about to patch; read it after the patch lands.
             if (hook !== previousHook || isChanged) window.Vue.nextTick(function () { safeRefresh(true); });
             else safeRefresh(false);
 
@@ -144,7 +149,9 @@
             maxHeight: isFinite(height) && height > 0 ? Math.round(height) : DEFAULT_MAX_HEIGHT,
             importantOnTop: !(next && next.importantOnTop === false),
             countdownOnTop: !(next && next.countdownOnTop === false),
-            soonestFirst: !(next && next.soonestFirst === false)
+            soonestFirst: !(next && next.soonestFirst === false),
+            layout: next && next.layout === 'lanes' ? 'lanes' : 'groups',
+            zh: !!(next && next.zh === true)
         };
     }
 
@@ -424,17 +431,29 @@
         var ss = rootSetupState();
 
         if (!ss) return 'no Vue app on #app';
-        if (hook && hook.ss === ss) return '';
+        if (hook && hook.ss === ss && hook.layout === settings.layout) return '';
         if (!('groupedEventList' in ss) || !('eventScrollMode' in ss) || !ss.state) return 'no event list in the app';
 
         var st = ss.state;
         var core = pageGlobal('core');
+        var isLanes = settings.layout === 'lanes';
+        var Lanes = window.__sleventlistLanes;
 
         if (!Array.isArray(st.eventList) || !('eventHover' in st)) return 'the event list state has a new shape';
         if (!core || !core.clickThrough || typeof core.clickThrough.syncNowAfterReflow !== 'function') return 'no click-through';
+        if (isLanes && !(Lanes && typeof Lanes.createPanel === 'function')) return 'the lanes script is missing';
+        if (isLanes && (typeof ss.UnitySendEvent !== 'function' || !('eventCompactMode' in ss))) return 'no way to send a row click or read the short list, so no lanes';
 
         unhook();
-        hook = { ss: ss, st: st, core: core, stops: [] };
+        hook = { ss: ss, st: st, core: core, stops: [], layout: settings.layout, lanes: null, panel: null };
+
+        if (isLanes) {
+            hook.lanes = Lanes.createPanel(document, function (action, data) {
+                ss.UnitySendEvent(action, data);
+            }, function () {
+                core.clickThrough.syncNowAfterReflow();
+            });
+        }
 
         // The game cuts its list to four rows plus "N more" while a rescue, siege or emergency shows, unless the
         // pointer is over it. Holding its hover flag on keeps every row in the scroll box, so nothing important is cut.
@@ -445,12 +464,7 @@
 
         // Runs once after each patch that changes the list, never for the per-second countdowns and never for our own
         // DOM writes, so there is no feedback loop. The two-second apply from the plugin is the backstop.
-        hook.stops.push(Vue.watch([
-            function () { return ss.groupedEventList; },
-            function () { return ss.eventScrollMode; },
-            function () { return st.eventListActive; },
-            function () { return crisisKey(st); }
-        ], function () { safeRefresh(false); }, { flush: 'post' }));
+        hook.stops.push(Vue.watch(refreshSources(ss, st, isLanes), function () { safeRefresh(false); }, { flush: 'post' }));
 
         // With the hover flag held on, it no longer says where the pointer is, so the script follows the pointer itself.
         // Capture phase, so a handler in the page that stops the event cannot hide it from us.
@@ -462,6 +476,23 @@
         });
 
         return '';
+    }
+
+    // The lanes also redraw each game minute: the game writes its countdown texts past Vue, so nothing in the list
+    // itself says a countdown moved, and the countdowns count game minutes like the clock.
+    function refreshSources(ss, st, isLanes) {
+        var sources = [
+            function () { return ss.groupedEventList; },
+            function () { return st.eventListActive; },
+            function () { return crisisKey(st); }
+        ];
+
+        if (!isLanes) return sources.concat([function () { return ss.eventScrollMode; }]);
+
+        return sources.concat([
+            function () { return ss.eventCompactMode; },
+            function () { return clockMinutes(st); }
+        ]);
     }
 
     function unhook() {
@@ -482,6 +513,8 @@
         }
 
         try {
+            if (dropped.lanes) dropped.lanes.remove();
+
             giveBackToGame(dropped);
         } catch (e) {
             // A page going away or changing shape may refuse some of it; what is left goes with the page.
@@ -542,10 +575,12 @@
         if (html.style.getPropertyValue(HEIGHT_VAR) !== height) html.style.setProperty(HEIGHT_VAR, height);
 
         html.classList.add(ACTIVE_CLASS);
+        setClass(html, LANES_CLASS, !!(hook && hook.lanes));
     }
 
     function hideStyle() {
         document.documentElement.classList.remove(ACTIVE_CLASS);
+        document.documentElement.classList.remove(LANES_CLASS);
     }
 
     function safeRefresh(force) {
@@ -565,6 +600,7 @@
 
     function refresh(force) {
         if (!hook) return;
+        if (hook.lanes) return refreshLanes(force);
 
         var box = document.querySelector(BOX);
 
@@ -580,6 +616,40 @@
         changed = routeClicks(box, hook.ss.eventScrollMode) || changed;
 
         if (changed || force) hook.core.clickThrough.syncNowAfterReflow();
+    }
+
+    // The game takes its panel off the page while the list is empty and builds a new one after, so the panel found
+    // last is kept only while it is on the page.
+    function refreshLanes(force) {
+        if (!(hook.panel && hook.panel.isConnected === true)) hook.panel = document.querySelector(PANEL);
+
+        var result = hook.lanes.draw(hook.panel, laneView());
+
+        if (result.isNewlyUrgent) scrollToTopWhenFree(hook.lanes.root);
+        if (result.changed || force) hook.core.clickThrough.syncNowAfterReflow();
+    }
+
+    // What the lanes are drawn from. The game's short list (during a rescue, a siege or an emergency) folds them down to
+    // Now.
+    function laneView() {
+        return {
+            groups: hook.ss.groupedEventList,
+            crisis: crisisIds(hook.st),
+            lineIcons: hook.ss.LINE_ICON || null,
+            isSiege: !!hook.ss.eventCompactMode,
+            clock: clockMinutes(hook.st),
+            day: hook.st.dayNumber,
+            zh: settings.zh,
+            facts: facts
+        };
+    }
+
+    // The game clock's time of day in minutes, or null when the page has none.
+    function clockMinutes(st) {
+        var hour = st.clockHour;
+        var minute = st.clockMinute;
+
+        return typeof hour === 'number' && typeof minute === 'number' ? hour * 60 + minute : null;
     }
 
     // While the list overflows, the box takes clicks and the wheel as one rect and the rows give theirs up, the way the
@@ -685,7 +755,7 @@
 
         if (isOver || !isScrollPending) return;
 
-        var box = document.querySelector(BOX);
+        var box = hook && hook.lanes ? hook.lanes.root : document.querySelector(BOX);
         isScrollPending = false;
 
         if (box) box.scrollTop = 0;
@@ -876,7 +946,7 @@
     // apply is the plugin's way in. rules are the parts that decide what the list does, kept here for the tests; the
     // page never calls them.
     window.__sleventlist = {
-        version: '0.3.1',
+        version: '0.4.0',
         apply: apply,
         rules: { readSettings: readSettings, tierOf: tierOf, rankByTimeLeft: rankByTimeLeft, crisisIds: crisisIds, routeClicks: routeClicks, readBadge: readBadge, badgeLabel: badgeLabel }
     };

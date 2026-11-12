@@ -3,7 +3,7 @@ using Jint;
 namespace EventList.Tests;
 
 /// <summary>
-/// eventlist.js exactly as the plugin embeds it, run in Jint on top of FakePage.js, a page with only the parts of
+/// lanes.js and eventlist.js exactly as the plugin embeds them, run in Jint on top of FakePage.js, a page with only the parts of
 /// CoreUI1 the script touches. Tests talk to it in JavaScript expressions and read back plain strings, numbers and
 /// booleans.
 /// </summary>
@@ -19,6 +19,7 @@ internal sealed class PageScript
 
         if (pageSpec != null) _engine.Execute("var page = buildPage(" + pageSpec + ");");
 
+        _engine.Execute(Resource("EventList.lanes.js"));
         _engine.Execute(Resource("EventList.eventlist.js"));
     }
 
@@ -37,6 +38,10 @@ internal sealed class PageScript
     /// <summary>The check call with the event badge, and the phone's document (a JavaScript expression, or "null").</summary>
     public string Apply(string settings, string badge, string phoneDocument) =>
         Text($"window.__sleventlist.apply({settings}, {badge}, {phoneDocument})");
+
+    /// <summary>The check call with the lanes' facts as well (a JavaScript expression).</summary>
+    public string Apply(string settings, string badge, string phoneDocument, string facts) =>
+        Text($"window.__sleventlist.apply({settings}, {badge}, {phoneDocument}, {facts})");
 
     public void Run(string statements) => _engine.Execute(statements);
 
