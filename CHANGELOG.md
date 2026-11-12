@@ -1,13 +1,18 @@
 # Changelog
 
+## 0.5.1
+
+- Clearer wording in the settings and on the Mods screen.
+- Made for Survival Log 1.1.20719.
+
 ## 0.5.0
 
-- New layout: lanes. Set `Layout` to `Lanes` to split the events list into Now, Countdowns and In progress, the most urgent events on top. It is off until you turn it on.
-- Now shows emergencies and countdowns with less than 6 hours left. Each countdown there says when it runs out on the game clock and which items it still needs, with their icons.
-- Countdowns go soonest first, each with a bar that shrinks as time runs out.
-- In progress starts folded and shows how many events it holds. Click its header to open it.
+- A new layout called Lanes. Set `Layout` to `Lanes` to split the events list into Now, Countdowns and In progress, with the most urgent events on top. It stays off until you turn it on.
+- The Now lane shows emergencies and countdowns with less than 6 hours left. Each event there says when it runs out on the game clock and which items it asks for, with their icons and how many you have.
+- The Countdowns lane lists the other countdowns, soonest first, each with a bar that shrinks as time runs out.
+- The In progress lane starts folded and shows how many events it holds. Click its header to open it.
 - During a rescue, a zombie siege or an emergency, only Now stays open. Everything else folds into one line that says when the next countdown runs out.
-- Lanes switch to Chinese when the game is in Chinese.
+- The lanes are in Chinese when the game is in Chinese.
 - Made for Survival Log 1.1.20719.
 
 ## 0.4.4

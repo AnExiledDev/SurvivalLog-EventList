@@ -1,31 +1,31 @@
 # Event List
 
-Keeps the events list on the HUD to a fixed height, scrollable, with the important events on top, and puts a badge on the phone for event texts you have not accepted yet. A second layout, lanes, splits the list into Now, Countdowns and In progress.
+Keeps the events list on the HUD at a fixed height and lets it scroll, with the important events on top. A badge on the phone counts the event texts you haven't accepted yet. There's also a second layout, Lanes, that splits the list into Now, Countdowns and In progress.
 
 In Survival Log the events list on the left of the screen grows down the screen as events pile up, and during a rescue, siege or emergency the game cuts it to four rows and a "...N more" line. Event List holds the list to a fixed height, lets the rest scroll, and moves emergencies and running countdowns to the top so they are never hidden.
 
 ## Features
 
 - **Fixed height**: the list stops at a set height (136 HUD pixels by default, room for both group headers and four rows). The rest scrolls with the mouse wheel over the list, using the game's thin scrollbar.
-- **Every event stays in the list**: the game's "...N more" cut never shows. Every event sits in the scroll box, so an important one is never hidden.
+- **Every event stays in the list**: the game's "...N more" line never shows. Every event sits in the scroll box, so an important one is never hidden.
 - **Emergencies on top**: an event the game shows as one of its red emergency entries, or the zombie wave while it is spawning or charging, moves to the top of the list.
 - **Countdowns next**: an event with a running countdown moves up too, below the emergencies.
 - **Soonest countdown first**: among the countdowns, the one with the least time left comes first.
 - **Back to the top when it matters**: when an event becomes important the list scrolls back to the top so you see it. If the pointer is over the list at that moment, the scroll waits until the pointer leaves, so a list you are reading never jumps.
-- **Clicks land where they did**: a list that fits keeps the game's click areas on each row. A list that overflows takes clicks and the wheel as one box, so a row scrolled out of sight never catches a click meant for the world. Clicks beside or below the list reach the game as before.
-- **Lanes**: set `Layout` to `Lanes` and the list is sorted into three lanes. Now holds emergencies and countdowns with less than 6 hours left, each showing when it runs out and which items it still needs. Countdowns holds the rest of the timers, soonest first, each with a bar that shrinks as time runs out. In progress holds everything else and starts folded. During a rescue, a zombie siege or an emergency, only Now stays open. See [Lanes](#lanes).
+- **Clicks work as before**: a list that fits keeps the game's click areas on each row. A list that overflows takes clicks and the wheel as one box, so a row scrolled out of sight never catches a click meant for the world. Clicks beside or below the list reach the game as before.
+- **Lanes**: set `Layout` to `Lanes` and the list is sorted into three lanes. Now holds emergencies and countdowns with less than 6 hours left, each showing when it runs out and which items it asks for. Countdowns holds the other countdowns, soonest first, each with a bar that shrinks as time runs out. In progress holds everything else and starts folded. During a rescue, a zombie siege or an emergency, only Now stays open. See [Lanes](#lanes).
 - **Event badge on the phone**: a second badge on the phone button, and on the messages app inside the phone, counts the event texts still waiting for you to accept them. It is teal, on the other corner from the game's red badge for unread event and trade texts, which stays as it is. When one of the waiting texts has a countdown, it turns orange with an hourglass. It goes away once nothing is waiting.
-- **Survives reloads**: the HUD can reload after a scene change; the mod notices within a couple of seconds and sets the list up again.
+- **Survives reloads**: the HUD can reload after a scene change. The mod notices within a couple of seconds and sets the list up again.
 - **Steps aside after a game update**: if the HUD changes so the mod no longer recognises it, the list is left exactly as the game draws it and the log says why in one line.
 - **Log file**: the mod writes what it did at startup and what the HUD answered to `BepInEx\event-list.log`.
 
-Event List only changes what is drawn on screen. It reads the texts in your phone to count the waiting event texts, and never writes the game's state, adds nothing to your save and does not edit game files. The game's list and its data are never reordered; the order changes on screen only. You can remove it at any time; the list goes back to the game's on the next start.
+Event List only changes what is drawn on screen. It reads the texts in your phone to count the waiting event texts, but it never changes the game's data, adds nothing to your save and does not edit game files. The new order is only on screen. Behind it, the game keeps its list in the usual order. You can remove the mod at any time, and the list is back to normal on the next start.
 
-Importance comes from the game's data for each event, never from its text, so it works in any game language.
+The mod tells which events are important from the game's data, so it works in any game language.
 
 ## How the list is ordered
 
-Highest first:
+Events are sorted into three tiers, highest first.
 
 1. **Emergency.** The event is one of the game's emergency entries while those are showing, or it is the zombie wave's event while the wave is spawning or charging.
 2. **Countdown.** The event shows a running countdown with time left. With `CountdownSoonestFirst` on (the default), the countdown with the least time left comes first. Times are compared in whole seconds, so countdowns in the same second keep the game's order. A countdown whose time left cannot be read goes after the rest of its tier, in the game's order.
@@ -35,19 +35,19 @@ Emergencies keep the game's order among themselves. Extra tracker rows under an 
 
 The game draws the list in groups (main and normal events), each with a header. An important event moves to the top of its group, and a group holding an important event moves above the groups that hold none. Two groups whose most important event is a countdown are ordered by their soonest countdown, so with `CountdownSoonestFirst` on, the normal group can sit above the main group when its countdown runs out sooner.
 
-The order is worked out again each time the game sends the list a new set of events, and every two seconds as a backstop. Countdowns tick down at the same rate, so they do not pass each other in between.
+The order is worked out again each time the game sends the list a new set of events, and again every two seconds in case it missed a change. Countdowns tick down at the same rate, so they do not pass each other in between.
 
 ## Lanes
 
-With `Layout` set to `Lanes` (the default is `Groups`), the list is drawn as three lanes, each with a header you can click to fold or open it:
+With `Layout` set to `Lanes` (the default is `Groups`), the list is drawn as three lanes. Each header shows how many events the lane holds.
 
-1. **Now**: emergencies, the zombie wave while it is spawning or charging, and countdowns with less than 6 hours left. Emergencies come first, in the game's order, then the countdowns, soonest first. Under each countdown a second line says when it runs out on the game clock ("runs out today 21:20") and lists the items the event still needs, with their icons and how many you have.
+1. **Now**: emergencies, the zombie wave while it is spawning or charging, and countdowns with less than 6 hours left. Emergencies come first, in the game's order, then the countdowns, soonest first. Each event here gets a second line that says when it runs out on the game clock ("runs out today 21:20") and lists the items it asks for, with their icons and how many you have.
 2. **Countdowns**: every other countdown, soonest first. A bar under each row shrinks as its time runs out.
-3. **In progress**: story events, events with no countdown and the tracker rows under them, in the game's order. It starts folded, with a count and how many of them are story events.
+3. **In progress**: events with no countdown, story events included, and the tracker rows, in the game's order. It starts folded, and its header also says how many of them are story events. Click the header to open or fold it.
 
-While the game shortens its list (a rescue, a zombie siege or an emergency), only Now stays open and everything else folds into one line that says when its next countdown runs out. When that ends, the lanes open again the way you left them.
+During a rescue, a zombie siege or an emergency, the game shortens its list. Then only Now stays open, and everything else folds into one line called Everything else that says when its next countdown runs out. You can click that line to open it. When the rescue, siege or emergency is over, In progress is folded or open the way you left it.
 
-Clicking a row does what clicking it in the game's list does: an event opens its details, and a tracker row opens the phone. The list keeps its `MaxHeight` and scrolls the same way, and when a new emergency shows up it scrolls back to the top.
+Clicking a row does what clicking it in the game's list does: an event opens its details, and a tracker row opens the phone. The list keeps its `MaxHeight` and scrolls the same way. When an event moves into Now, the list scrolls back to the top.
 
 The lane headers and times are in Chinese when the game is in Chinese. `ImportantOnTop`, `CountdownOnTop` and `CountdownSoonestFirst` only change the `Groups` layout.
 
@@ -55,13 +55,13 @@ The lane headers and times are in Chinese when the game is in Chinese. `Importan
 
 - The event badge is checked every two seconds, so a new event text can take that long to show on it.
 - The event badge counts the same conversations as the game's text badge: nothing while the phone is locked, and nothing from a contact who died or went missing.
-- The rescue, warehouse rescue and zombie siege boxes are separate panels with no event behind them, so they stay where the game puts them. A list row counts as an emergency only through the game's emergency entries or the zombie wave.
-- In lanes, the items an event still needs are read from the game every two seconds, so a change in your bag can take that long to show.
-- The game's "...N more" line never shows. To keep every event in the scroll box, the mod holds the list's own hover flag on.
+- The rescue, warehouse rescue and zombie siege boxes are separate panels with no event behind them, so they stay where the game puts them. Only the game's red emergency entries and the zombie wave count as emergencies.
+- In lanes, the item counts are read from the game every two seconds, so a change in your bag can take that long to show.
+- To keep every event in the scroll box, the mod makes the game treat the list as if the pointer were always over it. That is how the "...N more" line stays hidden.
 
 ## Requirements
 
-- Survival Log 1.1.20719. Built for this version; a game update can break it until the mod is updated.
+- Survival Log 1.1.20719. Built for this version. A game update can break it until the mod is updated.
 - The [BepInEx Pack for Survival Log](https://www.nexusmods.com/survivallog/mods/12), the BepInEx 6 (IL2CPP) build for the game.
 - [Exiled's Toolkit](https://github.com/AnExiledDev/SurvivalLog-ExiledToolkit) 0.20.0 or newer. Event List does not load without it. It applies settings changed on the Mod Manager's Mods screen without restarting the game.
 - Optional: [Mod Manager](https://www.nexusmods.com/survivallog/mods/73). With it, you can change every setting in game on its Mods screen and see what each one does, without opening the config file.
@@ -80,13 +80,13 @@ Delete `EventList.dll` from the `BepInEx\plugins` folder. For a clean slate, als
 
 ## Configuration
 
-Settings live in `BepInEx\config\com.dev.survivallog.eventlist.cfg`, created the first time the game starts with the mod. Change them in game on the Mod Manager's Mods screen, or edit the file while the game is closed. Changed on the Mods screen, every setting takes effect at once except `Enabled`, which takes effect at the next game start. Each setting in the cfg file is explained in English and Simplified Chinese. See [CONFIG.md](CONFIG.md) for every setting.
+Settings live in `BepInEx\config\com.dev.survivallog.eventlist.cfg`, created the first time the game starts with the mod. Change them in game on the Mod Manager's Mods screen, or edit the file while the game is closed. Every setting you change on the Mods screen takes effect at once, except `Enabled`, which takes effect at the next game start. Each setting in the cfg file is explained in English and Simplified Chinese. See [CONFIG.md](CONFIG.md) for every setting.
 
 ## Troubleshooting
 
 Built against BepInEx `6.0.0-be.788`.
 
-Check `BepInEx\LogOutput.log` for `===== Event List 0.5.0 started`. With the default settings the line after it reads `list at most 136px tall, emergencies then countdowns on top, countdowns soonest first, event badge on the phone`, and it is written again when a setting changes on the Mods screen. With `Layout` set to `Lanes` it reads `lanes at most 136px tall, event badge on the phone`. With `PhoneEventBadge` set to `false` it ends `no event badge` instead. With `Enabled` set to `false` the start line ends `off, EventList/Enabled is false; the list is left as the game draws it`.
+Check `BepInEx\LogOutput.log` for `===== Event List 0.5.1 started`. With the default settings the line after it reads `list at most 136px tall, emergencies then countdowns on top, countdowns soonest first, event badge on the phone`, and it is written again when a setting changes on the Mods screen. With `Layout` set to `Lanes` it reads `lanes at most 136px tall, event badge on the phone`. With `PhoneEventBadge` set to `false` it ends `no event badge` instead. With `Enabled` set to `false` the start line ends `off, EventList/Enabled is false; the list is left as the game draws it`.
 
 Once a game has loaded, look for `page script sent to CoreUI1 (install 1): the events list is held to its height`. If instead a line says `CoreUI1 is not the page this mod was written for`, a game update has changed the HUD and the list is left as the game draws it until the mod is updated. A line ending `so the event badge is not shown there` means the mod could not find the phone button or the messages app to put the badge on.
 
@@ -96,7 +96,7 @@ The same lines are in `BepInEx\event-list.log`, with a timestamp each, and that 
 
 Found a bug, have an idea, or something feels off? Come say so on the Core Directive Discord: https://discord.gg/trTsyxUFqg . You can also post in the Posts tab of the mod's Nexus Mods page. When reporting a bug, attach `BepInEx\LogOutput.log` and `BepInEx\event-list.log`.
 
-To reach me directly, message `exiled.dev` on Discord; you can find me in the [official Survival Log Discord](https://discord.gg/MZGg4gQAUe). I'm also on X as [@AnExiledDev](https://x.com/AnExiledDev).
+To reach me directly, message `exiled.dev` on Discord. You can find me in the [official Survival Log Discord](https://discord.gg/MZGg4gQAUe). I'm also on X as [@AnExiledDev](https://x.com/AnExiledDev).
 
 A Survival Log wiki with detailed documentation for all of my mods is coming soon.
 
@@ -106,7 +106,7 @@ A Survival Log wiki with detailed documentation for all of my mods is coming soo
 - **0.4.0**: Settings can be changed on the Mod Manager's Mods screen without a restart, all but `Enabled`. Works with Exiled's Toolkit 0.4.0 or newer, which is optional.
 - **0.3.1**: Plainer setting descriptions in the config file, each now also in Simplified Chinese. No setting or default changed.
 - **0.3.0**: A second badge on the phone counts the event texts waiting for you to accept them, so they are not missed. It turns orange with an hourglass when one of them has a countdown. Turn it off with `PhoneEventBadge`.
-- **0.2.0**: Countdowns on top are ordered by time left, the one about to run out first.
+- **0.2.0**: Countdowns on top are ordered by time left, so the one about to run out comes first.
 - **0.1.0**: First version.
 
 ## Build
