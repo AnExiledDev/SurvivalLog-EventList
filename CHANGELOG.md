@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.3
+
+- After loading another save, the list can no longer show events from the save before.
+- Made for Survival Log 1.1.21671.
+
 ## 0.5.2
 
 - Turning `Enabled` off on the Mods screen now takes effect right away, with no restart. The list goes back to the way the game draws it and the event badges come off the phone. Turn it on again and they come back.

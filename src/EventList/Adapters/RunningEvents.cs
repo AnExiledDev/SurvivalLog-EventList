@@ -34,6 +34,11 @@ internal sealed class RunningEvents
     private readonly Action<string> _log;
     private (IntPtr Pointer, int Version, int Count) _eventsStamp;
     private IntPtr _configsPointer;
+
+    // The dictionaries the stamps above were taken from. Holding them keeps the game from freeing them, so a new
+    // dictionary can never land at an address a stamp still names.
+    private Il2CppSystem.Collections.Generic.Dictionary<long, DynamicEventArgs>? _stampedEvents;
+    private Il2CppSystem.Collections.Generic.Dictionary<int, DynamicEventConfig>? _stampedConfigs;
     private bool _isFailureLogged;
     private bool _isIconNoteLogged;
 
@@ -92,6 +97,7 @@ internal sealed class RunningEvents
         if (stamp == _eventsStamp) return;
 
         _eventsStamp = stamp;
+        _stampedEvents = events;
         _eventIds.Clear();
 
         foreach (var pair in events)
@@ -204,6 +210,7 @@ internal sealed class RunningEvents
         if (configs.Pointer == _configsPointer) return;
 
         _configsPointer = configs.Pointer;
+        _stampedConfigs = configs;
         _shapes.Clear();
     }
 }

@@ -14,7 +14,7 @@ namespace EventList;
 public sealed class Plugin : BasePlugin
 {
     private const string Guid = "com.dev.survivallog.eventlist";
-    private const string Version = "0.5.2";
+    private const string Version = "0.5.3";
     private const string ToolkitGuid = "com.dev.survivallog.exiledtoolkit";
 
     public override void Load()
