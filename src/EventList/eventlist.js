@@ -3,7 +3,7 @@
 // lanes (lanes.js, sent just before this file), and puts the event badge on the phone: how many event texts wait to
 // be accepted.
 // Sent once per page load; the plugin then calls window.__sleventlist.apply(settings, badge, phoneDocument, facts)
-// every couple of seconds. phoneDocument is the PhoneSMS page's, or null while the game has no phone screen up. facts
+// every couple of seconds, and window.__sleventlist.stop(phoneDocument) once when the player turns the mod off. phoneDocument is the PhoneSMS page's, or null while the game has no phone screen up. facts
 // is what the plugin read about each running event for the lanes: { "<id>": { total, needs } }.
 // Touches only the DOM of this page and the phone page, one stylesheet in each, and the page-only eventHover flag.
 // The lanes send the game a row click, the same message a click on the game's row sends; nothing else reaches it.
@@ -107,6 +107,24 @@
         var badgeNote = showBadges(lastBadge, phoneDocument);
 
         return withNote(applyList(next), badgeNote);
+    }
+
+    // The plugin's call when the player turns the mod off: the list goes back to the way the game draws it, the lanes
+    // and the event badges come off, and the phone pages opened later get no badge either. The next apply sets it all
+    // up again.
+    function stop(phoneDocument) {
+        lastBadge = readBadge(null);
+        facts = {};
+
+        try {
+            showBadges(lastBadge, phoneDocument);
+            unhook();
+            hideStyle();
+
+            return 'stopped';
+        } catch (e) {
+            return 'error: ' + describe(e);
+        }
     }
 
     function withNote(answer, note) {
@@ -948,6 +966,7 @@
     window.__sleventlist = {
         version: '0.4.0',
         apply: apply,
+        stop: stop,
         rules: { readSettings: readSettings, tierOf: tierOf, rankByTimeLeft: rankByTimeLeft, crisisIds: crisisIds, routeClicks: routeClicks, readBadge: readBadge, badgeLabel: badgeLabel }
     };
 })();

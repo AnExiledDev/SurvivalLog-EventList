@@ -21,8 +21,10 @@ internal sealed class ListPage
     /// <summary>Sent just before eventlist.js, which draws the lanes with it.</summary>
     private const string LanesResource = "EventList.lanes.js";
 
-    private readonly PageWatch _watch = new();
+    private PageWatch _watch = new();
     private readonly ReplySlot _replies = new();
+    private readonly ReplySlot _stopReplies = new();
+    private readonly PageStop _stop;
     private readonly CheckCall _check = new();
     private readonly RunningEvents _events;
     private ListSettings _settings;
@@ -30,8 +32,9 @@ internal sealed class ListPage
     private readonly Action<string> _log;
     private string? _script;
 
-    public ListPage(ListSettings settings, Func<PhoneBadge> readBadge, Action<string> log)
+    public ListPage(bool isOn, ListSettings settings, Func<PhoneBadge> readBadge, Action<string> log)
     {
+        _stop = new PageStop(isOn);
         _settings = settings;
         _readBadge = readBadge;
         _log = log;
@@ -45,8 +48,23 @@ internal sealed class ListPage
         _readBadge = readBadge;
     }
 
+    public bool IsOn => _stop.IsOn;
+
+    /// <summary>The player turned the mod on or off. Off sends one stop call; on starts watching the page again.</summary>
+    public void SetOn(bool isOn)
+    {
+        if (_stop.Set(isOn)) _watch = new PageWatch();
+    }
+
     public void Tick(double now)
     {
+        if (!_stop.IsOn)
+        {
+            TickOff(now);
+
+            return;
+        }
+
         var turn = _watch.Step(now, _replies.Take());
 
         if (turn.LogLine != null) _log(turn.LogLine);
@@ -60,6 +78,18 @@ internal sealed class ListPage
         var javaScript = turn.Send == PageSend.Install ? PageCalls.Install(Script(), _settings, badge, facts) : _check.For(_settings, badge, facts);
 
         if (Run(javaScript, now) is { } line) _log(line);
+    }
+
+    /// <summary>A reply to a call made before the mod went off is dropped; the stop call is the only one sent.</summary>
+    private void TickOff(double now)
+    {
+        _replies.Take();
+
+        var isDue = _stop.Step(now, _stopReplies.Take(), out var line);
+
+        if (line != null) _log(line);
+
+        if (isDue && !WebUi.TryRun(PageCalls.Stop(), _stopReplies, out _)) _stop.NotSent(now);
     }
 
     /// <summary>Sends the call; returns a line for the log when it could not leave.</summary>

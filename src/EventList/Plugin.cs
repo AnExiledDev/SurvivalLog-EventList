@@ -14,14 +14,14 @@ namespace EventList;
 public sealed class Plugin : BasePlugin
 {
     private const string Guid = "com.dev.survivallog.eventlist";
-    private const string Version = "0.5.1";
+    private const string Version = "0.5.2";
     private const string ToolkitGuid = "com.dev.survivallog.exiledtoolkit";
 
     public override void Load()
     {
         var isEnabled = Config.Bind("EventList", "Enabled", true, new ConfigDescription(
-            "Keep the events list on the left of the screen at a fixed height and let the rest scroll. When it's off, the mod does nothing at all: the list stays as the game draws it and the phone gets no event badge. Takes effect at the next game start.\n" +
-            "把屏幕左侧的事件列表固定在一定高度，其余内容滚动查看。关闭后本模组什么都不做，列表保持游戏原样，手机上也没有事件角标。下次启动游戏时生效。", null, "ModManager.Restart")).Value;
+            "Keep the events list on the left of the screen at a fixed height and let the rest scroll. When it's off, the mod does nothing at all: the list stays as the game draws it and the phone gets no event badge. Changes show right away.\n" +
+            "把屏幕左侧的事件列表固定在一定高度，其余内容滚动查看。关闭后本模组什么都不做，列表保持游戏原样，手机上也没有事件角标。改动立即生效。"));
         var maxHeight = Config.Bind("EventList", "MaxHeight", ListSettings.DefaultMaxHeight,
             new ConfigDescription($"How tall the events list can get, in HUD pixels, before the rest scrolls. It works the same in both layouts. Pick a value from {ListSettings.LowestMaxHeight} to {ListSettings.HighestMaxHeight}. 0 or less uses the default, {ListSettings.DefaultMaxHeight}, which fits both group headers and four rows.\n" +
             $"事件列表最多能长到多高（界面像素），超出的部分滚动查看。两种样式都适用。范围 {ListSettings.LowestMaxHeight} 到 {ListSettings.HighestMaxHeight}，填 0 或更小则使用默认值 {ListSettings.DefaultMaxHeight}，正好放下「主线」「事件」两个分组标题和四行。", null, "ModManager.ShowWhen=Enabled"));
@@ -49,22 +49,22 @@ public sealed class Plugin : BasePlugin
             "在手机按钮和手机里的「短信」上多显示一个角标，统计还没接取的事件短信。其中有带倒计时的事件时，角标变成橙色并显示沙漏。仅在 Enabled 开启时生效。", null, "ModManager.ShowWhen=Enabled"));
         var log = new ModLog(Log, "event-list.log");
 
-        if (!isEnabled)
-        {
-            log.Write($"===== Event List {Version} started: off, EventList/Enabled is false; the list is left as the game draws it");
-
-            return;
-        }
-
         var phoneTexts = new PhoneTexts(log.Write);
 
         // The page reads the game's language on each tick, before it sends anything, so the settings start in English.
         ListSettings ReadSettings() => ListSettings.From(maxHeight.Value, isImportantOnTop.Value, isCountdownOnTop.Value, isCountdownSoonestFirst.Value, ListSettings.LayoutOf(layout.Value), false);
         Func<PhoneBadge> ReadBadgeSource() => BadgeSource(isPhoneBadgeOn.Value, phoneTexts);
 
-        var page = new ListPage(ReadSettings(), ReadBadgeSource(), log.Write);
+        var page = new ListPage(isEnabled.Value, ReadSettings(), ReadBadgeSource(), log.Write);
 
-        log.Write($"===== Event List {Version} started");
+        log.Write($"===== Event List {Version} started" + (isEnabled.Value ? "" : ": off, EventList/Enabled is false; the list is left as the game draws it"));
+        LiveSettings.Watch(() =>
+        {
+            if (page.IsOn == isEnabled.Value) return;
+
+            page.SetOn(isEnabled.Value);
+            log.Write(isEnabled.Value ? "turned on" : "turned off");
+        }, isEnabled);
         LiveSettings.Watch(() =>
         {
             var settings = ReadSettings();

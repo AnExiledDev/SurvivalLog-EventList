@@ -210,6 +210,22 @@ public class PageScriptTests
         Assert.False(page.Is("document.documentElement.classList.contains('sl-eventlist')"));
     }
 
+    /// <summary>The player turned the mod off: the list is the game's again, and the next apply holds it once more.</summary>
+    [Fact]
+    public void Stopping_gives_the_list_back_and_the_next_apply_holds_it_again()
+    {
+        var page = Hooked(BusyList);
+
+        Assert.Equal(PageAnswer.Stopped, page.Text("window.__sleventlist.stop(null)"));
+        Assert.False(page.Is("page.state.eventHover"));
+        Assert.Equal(0.0, page.Number("page.box.querySelectorAll('[data-sl-rank]').length"));
+        Assert.False(page.Is("document.documentElement.classList.contains('sl-eventlist')"));
+
+        Assert.Equal(PageAnswer.Ok, page.Apply(Defaults));
+        Assert.True(page.Is("page.state.eventHover"));
+        Assert.True(page.Is("document.documentElement.classList.contains('sl-eventlist')"));
+    }
+
     /// <summary>In its own scroll mode the game makes the box clickable through its class and the rows not at all.</summary>
     [Fact]
     public void In_the_game_s_scroll_mode_a_dropped_list_keeps_only_the_game_s_own_click_area()

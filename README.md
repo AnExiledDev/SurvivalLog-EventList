@@ -61,7 +61,7 @@ The lane headers and times are in Chinese when the game is in Chinese. `Importan
 
 ## Requirements
 
-- Survival Log 1.1.20719. Built for this version. A game update can break it until the mod is updated.
+- Survival Log 1.1.21671. Built for this version. A game update can break it until the mod is updated.
 - The [BepInEx Pack for Survival Log](https://www.nexusmods.com/survivallog/mods/12), the BepInEx 6 (IL2CPP) build for the game.
 - [Exiled's Toolkit](https://github.com/AnExiledDev/SurvivalLog-ExiledToolkit) 0.20.0 or newer. Event List does not load without it. It applies settings changed on the Mod Manager's Mods screen without restarting the game.
 - Optional: [Mod Manager](https://www.nexusmods.com/survivallog/mods/73). With it, you can change every setting in game on its Mods screen and see what each one does, without opening the config file.
@@ -80,13 +80,13 @@ Delete `EventList.dll` from the `BepInEx\plugins` folder. For a clean slate, als
 
 ## Configuration
 
-Settings live in `BepInEx\config\com.dev.survivallog.eventlist.cfg`, created the first time the game starts with the mod. Change them in game on the Mod Manager's Mods screen, or edit the file while the game is closed. Every setting you change on the Mods screen takes effect at once, except `Enabled`, which takes effect at the next game start. Each setting in the cfg file is explained in English and Simplified Chinese. See [CONFIG.md](CONFIG.md) for every setting.
+Settings live in `BepInEx\config\com.dev.survivallog.eventlist.cfg`, created the first time the game starts with the mod. Change them in game on the Mod Manager's Mods screen, or edit the file while the game is closed. Every setting you change on the Mods screen takes effect at once. Each setting in the cfg file is explained in English and Simplified Chinese. See [CONFIG.md](CONFIG.md) for every setting.
 
 ## Troubleshooting
 
 Built against BepInEx `6.0.0-be.788`.
 
-Check `BepInEx\LogOutput.log` for `===== Event List 0.5.1 started`. With the default settings the line after it reads `list at most 136px tall, emergencies then countdowns on top, countdowns soonest first, event badge on the phone`, and it is written again when a setting changes on the Mods screen. With `Layout` set to `Lanes` it reads `lanes at most 136px tall, event badge on the phone`. With `PhoneEventBadge` set to `false` it ends `no event badge` instead. With `Enabled` set to `false` the start line ends `off, EventList/Enabled is false; the list is left as the game draws it`.
+Check `BepInEx\LogOutput.log` for `===== Event List 0.5.2 started`. With the default settings the line after it reads `list at most 136px tall, emergencies then countdowns on top, countdowns soonest first, event badge on the phone`, and it is written again when a setting changes on the Mods screen. With `Layout` set to `Lanes` it reads `lanes at most 136px tall, event badge on the phone`. With `PhoneEventBadge` set to `false` it ends `no event badge` instead. With `Enabled` set to `false` the start line ends `off, EventList/Enabled is false; the list is left as the game draws it`. Turning it on or off while the game runs writes `turned on` or `turned off`.
 
 Once a game has loaded, look for `page script sent to CoreUI1 (install 1): the events list is held to its height`. If instead a line says `CoreUI1 is not the page this mod was written for`, a game update has changed the HUD and the list is left as the game draws it until the mod is updated. A line ending `so the event badge is not shown there` means the mod could not find the phone button or the messages app to put the badge on.
 

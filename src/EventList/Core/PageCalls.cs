@@ -35,6 +35,10 @@ public static class PageCalls
     public static string Install(string script, ListSettings settings, PhoneBadge badge, string facts = LaneFacts.None) =>
         Wrap($"w.eval({JsText.Literal(script)});if(!{Api})return '{PageAnswer.InstallLeftNothing}';{Apply(settings, badge, facts)}");
 
+    /// <summary>Sent once when the player turns the mod off: the script puts the list back and takes its badges away. A page without the script has nothing to undo.</summary>
+    public static string Stop() =>
+        Wrap($"if(!{Api})return '{PageAnswer.Stopped}';{FindPhone}return String({Api}.stop(phone));");
+
     public static string Settings(ListSettings settings) =>
         $"{{maxHeight:{Number(settings.MaxHeight)},importantOnTop:{Bool(settings.IsImportantOnTop)},countdownOnTop:{Bool(settings.IsCountdownOnTop)},soonestFirst:{Bool(settings.IsCountdownSoonestFirst)}," +
         $"layout:'{(settings.Layout == ListLayout.Lanes ? "lanes" : "groups")}',zh:{Bool(settings.IsChinese)}}}";

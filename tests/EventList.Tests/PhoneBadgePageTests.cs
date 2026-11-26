@@ -50,6 +50,17 @@ public class PhoneBadgePageTests
         Assert.True(page.Is("document.getElementById('sl-eventbadge-style')"));
     }
 
+    [Fact]
+    public void Stopping_takes_the_event_badge_off_the_phone_button()
+    {
+        var page = PageScript.On(PhoneUp);
+
+        page.Apply(Defaults, Badge(2, true), NoPhoneScreen);
+
+        Assert.Equal(PageAnswer.Stopped, page.Text("window.__sleventlist.stop(null)"));
+        Assert.False(page.Is(HudBadge));
+    }
+
     /// <summary>The player asked for the event badge beside the text badge, never in place of it.</summary>
     [Fact]
     public void The_games_own_text_badge_is_left_as_it_is()

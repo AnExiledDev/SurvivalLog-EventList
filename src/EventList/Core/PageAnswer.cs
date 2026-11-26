@@ -21,6 +21,9 @@ public static class PageAnswer
     /// <summary>Starts every answer where the page is not the one the script was written against; the script then changes nothing.</summary>
     public const string UnsupportedPrefix = "unsupported: ";
 
+    /// <summary>The answer to the stop call: the list is back the way the game draws it and the badges are gone.</summary>
+    public const string Stopped = "stopped";
+
     /// <summary>Not from the page: the game's web view is not up yet, so nothing was sent.</summary>
     public const string NoWebView = "no web view";
 

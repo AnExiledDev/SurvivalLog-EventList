@@ -42,7 +42,7 @@
     <AssemblyMetadata Include="ModManager.Description" Value="Keeps the events list on the HUD at a fixed height and lets it scroll, with emergencies and the soonest countdowns on top. A second layout splits the list into lanes by how urgent each event is. A badge on the phone counts the event texts you haven't accepted yet.&#10;把界面上的事件列表固定在一定高度并可滚动，危机和最快结束的倒计时排在顶部。另一种样式按紧急程度把列表分栏显示。手机上的角标统计还没接取的事件短信。" />
     <AssemblyMetadata Include="ModManager.Author" Value="AnExiledDev" />
     <AssemblyMetadata Include="ModManager.Category" Value="Interface" />
-    <AssemblyMetadata Include="ModManager.GameVersion" Value="1.1.20719" />
+    <AssemblyMetadata Include="ModManager.GameVersion" Value="1.1.21671" />
     <AssemblyMetadata Include="ModManager.Settings" Value="Restart" />
     <AssemblyMetadata Include="ModManager.GitHub" Value="AnExiledDev/SurvivalLog-EventList" />
     <AssemblyMetadata Include="ModManager.Changelog" Value="https://github.com/AnExiledDev/SurvivalLog-EventList/blob/main/CHANGELOG.md" />
